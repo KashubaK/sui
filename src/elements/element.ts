@@ -1,7 +1,6 @@
-import { v4 } from 'uuid';
-import {autorun, observable} from "mobx";
+import {action, autorun} from "mobx";
 
-type IfEquals<X, Y, A=X, B=never> =
+type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
     (<T>() => T extends Y ? 1 : 2) ? A : B;
 
@@ -17,7 +16,6 @@ type NonFunctionKeys<T> = {
   [P in keyof T]-?: IfEquals<T[P], () => unknown>
 }[keyof T];
 
-
 type ElementDescription = {
   class?: string;
   events?: Partial<{
@@ -30,25 +28,32 @@ type ElementDescription = {
 
 type ElementDescriptor = ElementDescription | (() => ElementDescription)
 
-type ElementRenderer = ((...children: (ElementRenderer | HTMLElement | string)[]) => HTMLElement) & {
+type Child = ElementRenderer | HTMLElement | string | false | null;
+
+export type ElementRenderer = ((children: Child[] | (() => Child[])) => HTMLElement) & {
   element: HTMLElement;
-};
+}
 
-export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName, state: any) {
-  return (desc: ElementDescriptor, deps: unknown[] = []): ElementRenderer => {
+export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
+  return (desc: ElementDescriptor) => {
     const element = document.createElement(tagName);
-
-    applyElementDescription(element, desc);
 
     autorun(() => {
       applyElementDescription(element, desc);
     })
 
-    const renderElement: ElementRenderer = (...children) => {
-      element.replaceChildren(
-        element.innerText,
-        ...children.map(child => typeof child === 'function' ? child.element : child)
-      );
+    const renderElement: ElementRenderer = (children) => {
+      if (typeof children === 'function') {
+        autorun(() => {
+          element.replaceChildren(
+            ...(children().map(child => typeof child === 'function' ? child.element : child)).filter(Boolean) as Node[]
+          );
+        })
+      } else {
+        element.replaceChildren(
+          ...children.map(child => typeof child === 'function' ? child.element : child).filter(Boolean) as Node[]
+        );
+      }
 
       return element;
     };
@@ -90,7 +95,7 @@ export function applyElementDescription(element: HTMLElement, descriptor: Elemen
   if (desc.events) {
     for (const key in desc.events) {
       const beep = key as keyof typeof desc.events;
-      const listener = desc.events[beep];
+      const listener = action(desc.events[beep]);
       if (!listener) continue;
 
       // TODO: Remove event listener, listener types

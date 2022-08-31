@@ -1,4 +1,5 @@
 import {component} from "../../src/component";
+import {Wow} from "./Wow";
 
 type Input = {
   defaultCount: number;
@@ -37,16 +38,11 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
   const countDisplay = $.span(() => ({
     class: 'Counter__Count',
     text: `Count: ${state.count}`
-  }), [state.count]);
+  }));
 
-  const wowText = $.span({
-    text: 'Wow!',
-  })
-
-  return container(
+  return container(() => [
     incrementor,
-    countDisplay(
-      wowText
-    ),
-  );
+    countDisplay,
+    state.count >= 10 && Wow({})
+  ]);
 });

@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 import {observable} from "mobx";
-import {createElementGenerator} from "./elements/element";
+import {createElementGenerator, ElementRenderer} from "./elements/element";
+import {elements} from "./elements/elements";
 
 type ComponentUtils<State, Input, Output> = {
   state: State;
@@ -12,7 +13,8 @@ type ComponentUtils<State, Input, Output> = {
 };
 
 type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
-type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => HTMLElement;
+type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => ElementRenderer
+ | HTMLElement;
 
 type InstanceStore<State, Input, Output> = Record<string, {
   state: State;
@@ -20,14 +22,16 @@ type InstanceStore<State, Input, Output> = Record<string, {
   output: Output;
 }>;
 
+type ComponentRenderer<Input> = ((input: Input) => ElementRenderer | HTMLElement)
+
 export function component<
   State extends Record<string, unknown>,
   Input extends Record<string, unknown>,
   Output extends Record<string, unknown>
->(defaultState: ComponentDefaultState<State, Input>, definition: ComponentDefinition<State, Input, Output>) {
+>(defaultState: ComponentDefaultState<State, Input>, definition: ComponentDefinition<State, Input, Output>): ComponentRenderer<Input> {
   const instanceStore: InstanceStore<State, Input, Output> = {};
 
-  return (input: Input) => {
+  const renderer = (input: Input) => {
     const id = v4();
 
     instanceStore[id] ||= {
@@ -46,13 +50,9 @@ export function component<
       state: currentState,
       input: currentInput,
       output: currentOutput,
-      $: {
-        // TODO: Add more elements
-        div: createElementGenerator('div', currentState),
-        span: createElementGenerator('span', currentState),
-        button: createElementGenerator('button', currentState),
-        input: createElementGenerator('input', currentState),
-      } as any,
+      $: elements(),
     });
   }
+
+  return renderer;
 }
