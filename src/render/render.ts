@@ -1,19 +1,23 @@
-import {ElementDescription, ElementRecord} from "../elements/element";
+import {ElementRecord} from "../elements/element";
 import {action} from "mobx";
 
 export function renderElement(record: ElementRecord): HTMLElement {
-  record.element ||= document.createElement(record.tagName);
-
-  if (record.children) {
-    record.element.replaceChildren(...record.children.map(renderElement));
+  if (!record.element) {
+    record.element = document.createElement(record.tagName);
+    record.onElementMount?.();
   }
 
-  applyElementDescription(record.element, record.description);
+  applyElementDescription(record);
 
   return record.element;
 }
 
-export function applyElementDescription(element: HTMLElement, description: ElementDescription) {
+export function applyElementDescription(record: ElementRecord) {
+  const { description, element } = record;
+  if (!element) {
+    throw new Error('Cannot apply description from record without an element');
+  }
+
   if (description.text) {
     if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
       element.firstChild.textContent = description.text;
@@ -40,12 +44,20 @@ export function applyElementDescription(element: HTMLElement, description: Eleme
   }
 
   if (description.events) {
+    record.listeners ||= {};
+
     for (const key in description.events) {
       const beep = key as keyof typeof description.events;
       const listener = action(description.events[beep]);
       if (!listener) continue;
 
-      // TODO: Remove event listener, listener types
+      if (record.listeners[beep]) {
+        element.removeEventListener(beep, record.listeners[beep]);
+      }
+
+      record.listeners[beep] = listener;
+
+      // TODO: listener types
       element.addEventListener(beep, listener as any);
     }
   }

@@ -29,11 +29,11 @@ export type ElementRecord = {
   description: ElementDescription;
   children: ElementRecord[];
   element?: HTMLElement;
+  listeners?: Record<string, (e: any) => unknown>;
+  onElementMount?: () => void;
 }
 
 export type ElementRenderer = (...children: (ElementRecord | ElementRenderer)[]) => ElementRecord;
-
-let debugStuff: any[] = [];
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
   return (description: ElementDescription) => {
@@ -44,12 +44,9 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
         children: children.map(child => typeof child === 'function' ? child() : child),
       };
 
-      debugStuff.push(record);
       return record;
     }
 
     return renderer;
   }
 }
-
-window.debugStuff = debugStuff;
