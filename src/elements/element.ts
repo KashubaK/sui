@@ -22,6 +22,7 @@ export type ElementDescription = {
   style?: Partial<Pick<CSSStyleDeclaration, WritableKeys<CSSStyleDeclaration> & NonFunctionKeys<CSSStyleDeclaration>>>;
   text?: string;
   html?: string;
+  when?: boolean;
 };
 
 export type ElementRecord = {
@@ -31,9 +32,10 @@ export type ElementRecord = {
   element?: HTMLElement;
   listeners?: Record<string, (e: any) => unknown>;
   onElementMount?: () => void;
+  mounted: boolean;
 }
 
-export type ElementRenderer = (...children: (ElementRecord | ElementRenderer)[]) => ElementRecord;
+export type ElementRenderer = (...children: (ElementRecord | ElementRenderer | false)[]) => ElementRecord;
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
   return (description: ElementDescription) => {
@@ -41,7 +43,8 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
       const record = {
         tagName,
         description,
-        children: children.map(child => typeof child === 'function' ? child() : child),
+        children: children.map(child => typeof child === 'function' ? child() : child).filter(Boolean) as ElementRecord[],
+        mounted: false,
       };
 
       return record;

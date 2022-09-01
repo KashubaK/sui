@@ -86,6 +86,10 @@ export function component<
       }
 
       const handleChild = (newChild: ElementRecord, index: number, parent: ElementRecord) => {
+        if (!parent.element) {
+          return;
+        }
+
         let currentChild = parent.children?.[index];
 
         if (!currentChild) {
@@ -94,18 +98,40 @@ export function component<
 
         if (!isEqual(newChild.description, currentChild.description)) {
           Object.assign(currentChild.description, newChild.description);
-        } else if (currentChild.element) {
+        } else if (currentChild.mounted) {
+          // Element already exists, no need to update
+          return;
+        }
+
+        if (newChild.description.when === false) {
+          console.log('get me outta here')
+          currentChild.mounted = false;
+          currentChild.element?.parentElement?.removeChild(currentChild.element);
           return;
         }
 
         const element = renderElement(currentChild);
 
         if (!element.parentElement) {
-          parent.element?.appendChild(element);
+          if (parent.element.children[index]) {
+            parent.element.children[index].insertAdjacentElement('beforebegin', element);
+          } else {
+            parent.element.appendChild(element);
+          }
         }
 
-        if (currentChild.children) {
-          currentChild.children.forEach((c, i) => handleChild(c, i, currentChild));
+        currentChild.mounted = true;
+
+        if (newChild.children) {
+          newChild.children.forEach((c, i) => {
+            if (currentChild.children[i]) {
+              Object.assign(currentChild.children[i], c);
+            } else {
+              currentChild.children.push(c);
+            }
+
+            handleChild(c, i, currentChild);
+          });
         }
       }
 

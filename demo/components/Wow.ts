@@ -5,5 +5,5 @@ export const Wow = component({}, ({ $ }) => {
     text: 'Wow, you counted to 10!'
   })
 
-  return wowMessage;
+  return wowMessage();
 })

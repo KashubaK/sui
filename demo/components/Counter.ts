@@ -51,13 +51,21 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
   });
 
   const wow = $.span({
-    text: `Wow!`
+    text: `Wow, you counted to at least 10!`,
+    when: state.count === 10,
   });
+
+  const beforeWow = $.span({ text: 'Before wow' });
+  const afterWow = $.span({ text: 'After wow' });
 
   return container(
     incrementor,
     countDisplay(
-      wow
+      wow,
+      beforeWow,
+      wow,
+      wow,
+      afterWow,
     ),
     decrementor,
   );
