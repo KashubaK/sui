@@ -1,7 +1,8 @@
 import { v4 } from 'uuid';
-import {observable} from "mobx";
-import {createElementGenerator, ElementRenderer} from "./elements/element";
+import {autorun, observable} from "mobx";
+import {createElementGenerator, ElementRecord} from "./elements/element";
 import {elements} from "./elements/elements";
+import {renderElement} from "./render/render";
 
 type ComponentUtils<State, Input, Output> = {
   state: State;
@@ -13,8 +14,7 @@ type ComponentUtils<State, Input, Output> = {
 };
 
 type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
-type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => ElementRenderer
- | HTMLElement;
+type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => ElementRecord;
 
 type InstanceStore<State, Input, Output> = Record<string, {
   state: State;
@@ -22,13 +22,13 @@ type InstanceStore<State, Input, Output> = Record<string, {
   output: Output;
 }>;
 
-type ComponentRenderer<Input> = ((input: Input) => ElementRenderer | HTMLElement)
+type ComponentRenderer<Input> = ((input: Input) => ElementRecord)
 
 export function component<
   State extends Record<string, unknown>,
   Input extends Record<string, unknown>,
   Output extends Record<string, unknown>
->(defaultState: ComponentDefaultState<State, Input>, definition: ComponentDefinition<State, Input, Output>): ComponentRenderer<Input> {
+>(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Output>): ComponentRenderer<Input> {
   const instanceStore: InstanceStore<State, Input, Output> = {};
 
   const renderer = (input: Input) => {
@@ -44,14 +44,31 @@ export function component<
 
     const currentInput = instanceStore[id].input;
     const currentState = instanceStore[id].state;
-    const currentOutput = instanceStore[id].output;
+    const currentOutput  = instanceStore[id].output;
 
-    return definition({
+    const initialRecord = define({
       state: currentState,
       input: currentInput,
       output: currentOutput,
       $: elements(),
     });
+
+    autorun(() => {
+      const newRecord = define({
+        state: currentState,
+        input: currentInput,
+        output: currentOutput,
+        $: elements(),
+      });
+
+      Object.assign(initialRecord, newRecord);
+
+      renderElement(initialRecord);
+
+      console.log('Component updated', newRecord, currentState, currentInput, currentOutput)
+    });
+
+    return initialRecord;
   }
 
   return renderer;
