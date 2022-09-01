@@ -55,17 +55,10 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
     when: state.count === 10,
   });
 
-  const beforeWow = $.span({ text: 'Before wow' });
-  const afterWow = $.span({ text: 'After wow' });
-
   return container(
     incrementor,
     countDisplay(
       wow,
-      beforeWow,
-      wow,
-      wow,
-      afterWow,
     ),
     decrementor,
   );

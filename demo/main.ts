@@ -1,6 +1,6 @@
 // PSEUDO CODE
 import {mount} from "../src/mount";
-import {Counter} from "./components/Counter";
 import {renderElement} from "../src/render/render";
+import {App} from "./components/App";
 
-mount(document.body, renderElement(Counter({ defaultCount: 0 })));
+mount(document.body, renderElement(App({})));

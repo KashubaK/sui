@@ -56,7 +56,9 @@ export function component<
       }),
     }
 
-    const applyElementChanges = () => {
+    instanceStore[id].record.type = 'component';
+
+    const applyElementChanges = (fromMounted = false) => {
       const start = performance.now();
 
       // TODO: Figure out how to get autorun to work without having to do this
@@ -68,11 +70,12 @@ export function component<
       }
 
       const currentRecord = instanceStore[id].record;
+
       if (!currentRecord.element)  {
         return;
       }
 
-      const newRecord = define({
+      const newRecord = fromMounted ? currentRecord : define({
         state: instanceStore[id].state,
         input: instanceStore[id].input,
         output: instanceStore[id].output,
@@ -99,12 +102,11 @@ export function component<
         if (!isEqual(newChild.description, currentChild.description)) {
           Object.assign(currentChild.description, newChild.description);
         } else if (currentChild.mounted) {
-          // Element already exists, no need to update
+          // Element already mounted, no need to update
           return;
         }
 
         if (newChild.description.when === false) {
-          console.log('get me outta here')
           currentChild.mounted = false;
           currentChild.element?.parentElement?.removeChild(currentChild.element);
           return;
@@ -135,7 +137,9 @@ export function component<
         }
       }
 
-      newRecord.children?.forEach((c, i) => handleChild(c, i, currentRecord));
+      newRecord.children?.forEach((c, i) => {
+        handleChild(c, i, currentRecord)
+      });
 
       instanceStore[id].record = currentRecord;
       const end = performance.now();
@@ -144,10 +148,10 @@ export function component<
     }
 
     instanceStore[id].record.onElementMount = () => {
-      applyElementChanges();
+      applyElementChanges(true);
     }
 
-    autorun(applyElementChanges);
+    autorun(() => applyElementChanges());
 
     return instanceStore[id].record;
   }
