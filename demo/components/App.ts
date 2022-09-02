@@ -3,7 +3,7 @@ import {Counter} from "./Counter";
 
 export const App = component({}, ({ $ }) => {
   const container = $.div({ class: 'ProperDemo' });
-  const counter = Counter({ defaultCount: 0 });
+  const counter = Counter({ input: { defaultCount: 0 } });
 
   return (
     container(

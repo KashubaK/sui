@@ -17,23 +17,30 @@ type ComponentUtils<State, Input, Output> = {
 type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
 type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => ElementRecord;
 
-type InstanceStore<State, Input, Output> = Record<string, {
-  state: State;
-  input: Input;
-  output: Output;
+type InstanceStore = Record<string, {
+  state: Record<string, unknown>;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
   record: ElementRecord;
 }>;
 
-type ComponentRenderer<Input> = ((input: Input) => ElementRecord)
+type ComponentRendererArgs<Input> = {
+  input: Input;
+  when?: boolean;
+}
+
+type ComponentRenderer<Input> = ((args: ComponentRendererArgs<Input>) => ElementRecord)
+const instanceStore: InstanceStore = {};
+
+let componentCount = 0;
 
 export function component<
   State extends Record<string, unknown>,
   Input extends Record<string, unknown>,
   Output extends Record<string, unknown>
 >(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Output>): ComponentRenderer<Input> {
-  const instanceStore: InstanceStore<State, Input, Output> = {};
-
-  const renderer = (input: Input) => {
+  const renderer: ComponentRenderer<Input> = ({ input, when }) => {
+    componentCount++;
     const id = v4();
 
     const initialInput = observable(input);
@@ -57,6 +64,8 @@ export function component<
     }
 
     instanceStore[id].record.type = 'component';
+
+    console.log(instanceStore)
 
     const applyElementChanges = (fromMounted = false) => {
       const start = performance.now();
@@ -94,6 +103,16 @@ export function component<
         }
 
         let currentChild = parent.children?.[index];
+
+        if (currentChild.type === 'component') {
+          const id = currentChild.element?.getAttribute('data-id');
+
+          if (id) {
+            console.log('updating ID', id);
+            console.log(instanceStore);
+            // currentChild = instanceStore[id].record
+          }
+        }
 
         if (!currentChild) {
           currentChild = newChild;
@@ -149,9 +168,14 @@ export function component<
 
     instanceStore[id].record.onElementMount = () => {
       applyElementChanges(true);
+      instanceStore[id].record.element?.setAttribute('data-id', id);
     }
 
     autorun(() => applyElementChanges());
+
+
+    console.log({ componentCount });
+    componentCount = 0;
 
     return instanceStore[id].record;
   }

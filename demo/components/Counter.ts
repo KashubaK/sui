@@ -1,4 +1,5 @@
 import {component} from "../../src/component";
+import {Wow} from "./Wow";
 
 type Input = {
   defaultCount: number;
@@ -50,8 +51,8 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
     text: `Count: ${state.count}`
   });
 
-  const wow = $.span({
-    text: `Wow, you counted to at least 10!`,
+  const wow = Wow({
+    input: {},
     when: state.count === 10,
   });
 
