@@ -17,12 +17,12 @@ type ComponentUtils<State, Input, Output> = {
 type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
 type ComponentDefinition<State, Input, Output> = (utils: ComponentUtils<State, Input, Output>) => ElementRecord;
 
-type InstanceStore = Record<string, {
-  state: Record<string, unknown>;
-  input: Record<string, unknown>;
-  output: Record<string, unknown>;
+type ComponentInstance<State, Input, Output> = {
+  state: State;
+  input: Input;
+  output: Output;
   record: ElementRecord;
-}>;
+};
 
 type ComponentRendererArgs<Input> = {
   input: Input;
@@ -30,19 +30,14 @@ type ComponentRendererArgs<Input> = {
 }
 
 type ComponentRenderer<Input> = ((args: ComponentRendererArgs<Input>) => ElementRecord)
-const instanceStore: InstanceStore = {};
-
-let componentCount = 0;
-
 export function component<
   State extends Record<string, unknown>,
   Input extends Record<string, unknown>,
   Output extends Record<string, unknown>
 >(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Output>): ComponentRenderer<Input> {
-  const renderer: ComponentRenderer<Input> = ({ input, when }) => {
-    componentCount++;
-    const id = v4();
+  const isCounter = define.toString().includes('class: "Counter"');
 
+  const renderer: ComponentRenderer<Input> = ({ input, when }) => {
     const initialInput = observable(input);
     const initialState = observable(
       typeof defaultState === 'function' ? defaultState(input) : defaultState
@@ -51,7 +46,7 @@ export function component<
 
     const componentElements = elements();
 
-    instanceStore[id] = {
+    const instance: ComponentInstance<State, Input, Output> = {
       input: initialInput,
       state: initialState,
       output: initialOutput,
@@ -63,9 +58,8 @@ export function component<
       }),
     }
 
-    instanceStore[id].record.type = 'component';
-
-    console.log(instanceStore)
+    instance.record.type = 'component';
+    instance.record.description.when = when;
 
     const applyElementChanges = (fromMounted = false) => {
       const start = performance.now();
@@ -78,16 +72,16 @@ export function component<
         initialInput[key];
       }
 
-      const currentRecord = instanceStore[id].record;
+      const currentRecord = instance.record;
 
       if (!currentRecord.element)  {
         return;
       }
 
       const newRecord = fromMounted ? currentRecord : define({
-        state: instanceStore[id].state,
-        input: instanceStore[id].input,
-        output: instanceStore[id].output,
+        state: instance.state,
+        input: instance.input,
+        output: instance.output,
         $: componentElements,
       });
 
@@ -103,16 +97,6 @@ export function component<
         }
 
         let currentChild = parent.children?.[index];
-
-        if (currentChild.type === 'component') {
-          const id = currentChild.element?.getAttribute('data-id');
-
-          if (id) {
-            console.log('updating ID', id);
-            console.log(instanceStore);
-            // currentChild = instanceStore[id].record
-          }
-        }
 
         if (!currentChild) {
           currentChild = newChild;
@@ -160,24 +144,19 @@ export function component<
         handleChild(c, i, currentRecord)
       });
 
-      instanceStore[id].record = currentRecord;
+      instance.record = currentRecord;
       const end = performance.now();
 
       console.log('Component update took', end - start, 'ms')
     }
 
-    instanceStore[id].record.onElementMount = () => {
+    instance.record.onElementMount = () => {
       applyElementChanges(true);
-      instanceStore[id].record.element?.setAttribute('data-id', id);
     }
 
     autorun(() => applyElementChanges());
 
-
-    console.log({ componentCount });
-    componentCount = 0;
-
-    return instanceStore[id].record;
+    return instance.record;
   }
 
   return renderer;
