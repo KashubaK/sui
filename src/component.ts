@@ -18,7 +18,7 @@ type ComponentDefinition<State, Input, Events extends ComponentEvents> = ((utils
 
 type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents> = {
   input: Input;
-  events: Events,
+  events?: Events,
   when?: boolean;
 }
 
@@ -27,6 +27,7 @@ export type ComponentRenderer<State = any, Input = any> = ((state?: State, input
   type: 'component';
   input?: Input;
   parent?: ElementRecord;
+  when?: boolean;
 };
 
 export function component<
@@ -37,14 +38,14 @@ export function component<
   const generateInstance: ComponentInstanceGenerator<State, Input, Events> = ({ input, events, when }) => {
     const initialState = observable(typeof defaultState === 'function' ? defaultState(input) : defaultState);
 
-    const renderer = (state = initialState) => {
+    const renderer: ComponentRenderer<State, Input> = (state = initialState) => {
       const componentElements = elements();
       
       const record = define({
         state: state,
         input: input,
         emit: action((key, value) => {
-          events[key](value);
+          events?.[key](value);
         }),
         $: componentElements,
       })();
@@ -59,8 +60,9 @@ export function component<
 
     renderer.type = 'component';
     renderer.input = input;
+    renderer.when = when;
 
-    return renderer as ComponentRenderer<State, Input>;
+    return renderer;
   }
 
   return generateInstance;

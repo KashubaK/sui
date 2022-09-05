@@ -52,7 +52,8 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
   });
 
   const wow = Wow({
-    input: { count: state.count },
+    input: {},
+    // input: { count: state.count },
     when: state.count === 10
   });
 

@@ -17,7 +17,8 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
     if (currentRecord && isComponentRenderer(render)) {
       if (
         isEqual(currentRecord.state, currentRecord.lastState) &&
-        isEqual(render.input, currentRecord.lastInput)
+        isEqual(render.input, currentRecord.lastInput) &&
+        render.when === currentRecord.mounted
       ) {
         return;
       }
