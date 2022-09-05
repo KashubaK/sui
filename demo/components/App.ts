@@ -20,7 +20,6 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
         state.count = count;
       }
     },
-    when: state.count <= 10
   });
 
   const count = $.span({ text: `Count: ${state.count}` })

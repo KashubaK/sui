@@ -26,7 +26,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
     text: 'Increment',
     events: {
       click: () => {
-        state.count++;
+        state.count += 1000;
         emit('count', state.count);
       }
     }
@@ -37,7 +37,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
     text: 'Decrement',
     events: {
       click: () => {
-        state.count--;
+        state.count -= 10;
         emit('count', state.count);
       }
     }
@@ -49,8 +49,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
   });
 
   const wow = Wow({
-    input: {},
-    when: state.count === 10
+    input: { count: state.count },
   });
 
   const listItems = [...Array(state.count)].map((_, i) => {

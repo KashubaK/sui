@@ -20,7 +20,9 @@ export function applyElementDescription(record: ElementRecord) {
 
   if (description.text) {
     if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
-      element.firstChild.textContent = description.text;
+      if (element.firstChild.textContent != description.text) {
+        element.firstChild.textContent = description.text;
+      }
     } else {
       element.prepend(document.createTextNode(description.text));
     }

@@ -1,7 +1,7 @@
 import {ElementRecord, ElementRenderer} from "./elements/element";
 import {ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
-import {autorun} from "mobx";
+import {IReactionDisposer, reaction} from "mobx";
 import {isEqual} from "lodash-es";
 
 let rootRecord: ElementRecord | null = null;
@@ -11,7 +11,10 @@ function isComponentRenderer(render: ComponentRenderer | ElementRenderer): rende
 }
 
 export function mount(render: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
-  const logic = () => {
+  const perform = (disposeLastStateReaction?: IReactionDisposer) => {
+    disposeLastStateReaction?.();
+
+    const start = performance.now();
     let currentRecord = render.parent ? render.parent.childRecords[childIndex] : rootRecord;
 
     if (currentRecord && isComponentRenderer(render)) {
@@ -64,20 +67,32 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       mount(child, element, index)
     });
 
-    currentRecord.childRecords = currentRecord.childRecords.filter((child, index) => {
-      // Something about this is super funky. It works, but it's WEIRD...
-      if (!currentRecord?.children[index]) {
-        child.element?.parentElement?.removeChild(child.element);
-        return false;
-      }
+    if (currentRecord.childRecords.length !== currentRecord.children.length) {
+      currentRecord.childRecords = currentRecord.childRecords.filter((child, index) => {
+        // Something about this is super funky. It works, but it's WEIRD...
+        if (!currentRecord?.children[index]) {
+          child.element?.parentElement?.removeChild(child.element);
+          return false;
+        }
 
-      return true;
-    })
+        return true;
+      });
+    }
+
+    const end = performance.now();
+
+    if (isComponentRenderer(render)) {
+      render.__lastRenderTime = end - start;
+    }
+
+    // UGLY, probably an anti-pattern, but works.
+    const nextDispose: IReactionDisposer = reaction(() => {
+      return {
+        ...currentRecord?.state,
+        ...currentRecord?.input,
+      }
+    }, () => perform(nextDispose));
   };
 
-
-  // This technically gets run twice on first render.
-  // However, the subsequent SHOULD do nothing as the state/input/when haven't changed
-  logic();
-  autorun(logic);
+  perform();
 }

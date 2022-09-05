@@ -8,7 +8,6 @@ This is just an idea that may never come to fruition. There is much work to do b
 
 ## TODO
 
-- Iterative rendering
 - Rendering optimization (currently using a very naive approach)
 - First-class routing
 - First-class data fetching
