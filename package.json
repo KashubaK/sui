@@ -1,5 +1,6 @@
 {
   "name": "@kashuab/sui",
+  "private": false,
   "description": "Simple client-side UI framework for JavaScript.",
   "repository": "https://github.com/KashubaK/sui",
   "author": {
