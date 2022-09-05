@@ -8,6 +8,7 @@ This is just an idea that may never come to fruition. There is much work to do b
 
 ## TODO
 
+- Battle test, build example applications to catch edge cases and performance issues
 - First-class routing
 - First-class data fetching
 - First-class test utilities
@@ -20,7 +21,7 @@ Yes! The more frameworks there are, the more refined our ideas become. This proj
 ## What makes SUI different?
 
 - No special syntax, just pure JavaScript.
-- Intuitive, mutable state management built-in. (Powered by [MobX](https://mobx.js.org/README.html))
+- Intuitive, mutable state management built-in. (Currently powered by [MobX](https://mobx.js.org/README.html))
 - **TODO:** First-class routing
 - **TODO:** First-class test utilities
 - **TODO:** First-class data fetching
@@ -29,14 +30,16 @@ That's it!
 
 ## Pure JavaScript
 
-No magic, no transpilation.
+No transpilation. You can even import this straight into the browser.
 
 ```js
-import { component } from 'sui';
+import { component, mount } from 'sui';
 
 export const Heading = component(({ $ }) => {
   return $.h1('Hello world!');
 });
+
+mount(Heading({}), document.body);
 ```
 
 Modern frameworks out that don't seem to care that developers aren't writing straight up JS. This often creates 

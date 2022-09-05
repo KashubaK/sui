@@ -2,7 +2,6 @@ import {ElementRecord, ElementRenderer} from "./elements/element";
 import {ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
 import {IReactionDisposer, reaction} from "mobx";
-import {isEqual} from "lodash-es";
 
 let rootRecord: ElementRecord | null = null;
 
@@ -17,8 +16,8 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     if (currentRecord && isComponentRenderer(render)) {
       if (
-        isEqual(currentRecord.state, currentRecord.lastState) &&
-        isEqual(render.input, currentRecord.lastInput) &&
+        shallowEqual(currentRecord.state, currentRecord.lastState) &&
+        shallowEqual(render.input, currentRecord.lastInput) &&
         (render.when ?? true) === currentRecord.mounted
       ) {
         return;
@@ -98,4 +97,14 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
   };
 
   perform();
+}
+
+function shallowEqual(a: Record<string, unknown> = {}, b: Record<string, unknown> = {}) {
+  for (const key in a) {
+    if (a[key] !== b[key]) {
+      return false;
+    }
+  }
+
+  return true;
 }

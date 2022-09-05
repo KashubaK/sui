@@ -1,2 +1,3 @@
-import '../demo/style.css'
+export * from './component'
+export * from './mount'
 
