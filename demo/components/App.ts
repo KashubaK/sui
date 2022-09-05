@@ -12,10 +12,21 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
   });
 
   const container = $.div({ class: `ProperDemo` });
-  const counter = Counter({ input: { defaultCount: 0 } });
+
+  const counter = Counter({
+    input: { defaultCount: 0 },
+    events: {
+      count(count) {
+        state.count = count;
+      }
+    }
+  });
+
+  const count = $.span({ text: `Count: ${state.count}` })
 
   return (
     container(
+      count(),
       counter,
       rerender()
     )

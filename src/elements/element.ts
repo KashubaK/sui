@@ -27,7 +27,7 @@ export type ElementDescription = {
   when?: boolean;
 };
 
-export type ElementRecord<State = {}, Input = {}, Output = {}> = {
+export type ElementRecord<State = {}, Input = {}> = {
   type: 'component' | 'element';
   tagName: keyof HTMLElementTagNameMap;
   description: ElementDescription;
@@ -42,7 +42,6 @@ export type ElementRecord<State = {}, Input = {}, Output = {}> = {
   lastState?: State;
   input?: Input;
   lastInput?: Input;
-  output?: Output;
   index?: number;
 }
 

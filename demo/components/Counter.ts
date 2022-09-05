@@ -9,13 +9,13 @@ type State = {
   count: number;
 }
 
-type Output = {
-  count: number;
+type Events = {
+  count: (count: number) => unknown;
 }
 
 const defaultCounterState = (input: Input): State => ({ count: input.defaultCount });
 
-export const Counter = component<State, Input, Output>(defaultCounterState, ({ state, output, $ }) => {
+export const Counter = component<State, Input, Events>(defaultCounterState, ({ state, emit, $ }) => {
   const container = $.div({
     class: 'Counter',
     style: {
@@ -30,8 +30,7 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
     events: {
       click: () => {
         state.count++;
-        output.count = state.count;
-        console.log('bopbey', state.count)
+        emit('count', state.count);
       }
     }
   });
@@ -42,7 +41,7 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
     events: {
       click: () => {
         state.count--;
-        output.count = state.count;
+        emit('count', state.count);
       }
     }
   });
