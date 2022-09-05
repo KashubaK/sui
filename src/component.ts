@@ -1,7 +1,6 @@
 import {action, observable} from "mobx";
 import {createElementGenerator, ElementRecord, ElementRenderer} from "./elements/element";
 import {elements} from "./elements/elements";
-import {v4} from "uuid";
 
 type ComponentEvents = Record<string, (...args: any[]) => unknown>
 

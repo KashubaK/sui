@@ -1,5 +1,4 @@
 import {ComponentRenderer} from "../component";
-import {v4} from "uuid";
 
 type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
@@ -35,7 +34,6 @@ export type ElementRecord<State = {}, Input = {}> = {
   children: (ElementRenderer | ComponentRenderer<State, Input>)[];
   childRecords: ElementRecord[];
   mounted: boolean;
-  key: string;
   onElementMount?: () => void;
   parent?: ElementRecord;
   element?: HTMLElement;
@@ -51,14 +49,12 @@ type ElementInstanceGenerator = (...children: ElementRenderer[]) => ElementRende
 
 export type ElementRenderer = (() => ElementRecord) & {
   parent?: ElementRecord;
-  key: string;
   type: 'element' | 'component';
 };
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
   return (description: ElementDescription): ElementInstanceGenerator => {
     const instanceGenerator = (...children: ElementRenderer[]): ElementRenderer => {
-      const key = v4();
       const renderer = () => {
         const record: ElementRecord = {
           tagName,
@@ -66,7 +62,6 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
           childRecords: [],
           children,
           mounted: false,
-          key,
           type: 'element',
         };
 
@@ -74,7 +69,6 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
       }
 
       renderer.type = 'element';
-      renderer.key = key;
 
       return renderer as ElementRenderer;
     }

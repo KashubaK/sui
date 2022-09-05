@@ -6,9 +6,11 @@ type ListItemInput = {
 
 export const ListItem = component<{ count: number }, ListItemInput, {}>({ count: 0 }, ({ state, input, $ }) => {
   const button = $.button({
-    text: 'Add',
+    text: `Add`,
     events: {
-      click: () => state.count++
+      click: () => {
+        state.count++;
+      }
     }
   });
 

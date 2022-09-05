@@ -26,7 +26,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
     text: 'Increment',
     events: {
       click: () => {
-        state.count += 1000;
+        state.count += 10;
         emit('count', state.count);
       }
     }
@@ -53,7 +53,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
   });
 
   const listItems = [...Array(state.count)].map((_, i) => {
-    return ListItem({ input: { text: `List item ${i + 1}` } });
+    return ListItem({ input: { text: `List item ${i}` } });
   })
 
   const list = $.ul({});

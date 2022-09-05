@@ -12,8 +12,6 @@ function isComponentRenderer(render: ComponentRenderer | ElementRenderer): rende
 
 export function mount(render: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
   const perform = (disposeLastStateReaction?: IReactionDisposer) => {
-    disposeLastStateReaction?.();
-
     const start = performance.now();
     let currentRecord = render.parent ? render.parent.childRecords[childIndex] : rootRecord;
 
@@ -35,6 +33,7 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       currentRecord = record;
     }
 
+    currentRecord.state ||= record.state;
     rootRecord ||= currentRecord;
 
     currentRecord.lastState = { ...currentRecord.state };
@@ -85,13 +84,17 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       render.__lastRenderTime = end - start;
     }
 
+    disposeLastStateReaction?.();
+
     // UGLY, probably an anti-pattern, but works.
     const nextDispose: IReactionDisposer = reaction(() => {
       return {
         ...currentRecord?.state,
         ...currentRecord?.input,
       }
-    }, () => perform(nextDispose));
+    }, () => {
+      perform(nextDispose)
+    });
   };
 
   perform();
