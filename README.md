@@ -33,13 +33,14 @@ That's it!
 No transpilation. You can even import this straight into the browser.
 
 ```js
-import { component, mount } from 'sui';
+import { component, mount } from '@kashuab/sui';
 
-export const Heading = component(({ $ }) => {
-  return $.h1('Hello world!');
+// TODO: Stateless components shouldn't require an explicit empty state object
+export const Heading = component({}, ({ $ }) => {
+  return $.h1({ text: 'Hello world!' });
 });
 
-mount(Heading({}), document.body);
+mount(Heading({ input: {} }), document.body);
 ```
 
 Modern frameworks out that don't seem to care that developers aren't writing straight up JS. This often creates 
@@ -50,7 +51,7 @@ disconnection between source code and what's actually happening, resulting in co
 Model your component's state and interact with it directly:
 
 ```js
-import { component } from 'sui';
+import { component } from '@kashuab/sui';
 
 const defaultState = {
   count: 0,
@@ -69,8 +70,8 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   const container = $.div();
   
   return container(
-    increment,
-    count
+    increment(), // TODO: You shouldn't have to call these when they have no children.
+    count()
   );
 });
 ```
@@ -80,7 +81,7 @@ export const Counter = component(defaultState, ({ state, $ }) => {
 Call the component function:
 
 ```js
-import { component } from 'sui';
+import { component } from '@kashuab/sui';
 
 export const Parent = component({}, ({ $ }) => {
   const container = $.div();
@@ -88,12 +89,12 @@ export const Parent = component({}, ({ $ }) => {
   
   return container(
     heading(),
-    Child({})
+    Child({ input: {} }) // TODO: When a child doesn't need input, you shouldn't have to pass an empty object
   );
 })
 
 const Child = component({}, ({ $ }) => {
-  return $.span({ text: 'Hello world!' });
+  return $.span({ text: 'Hello world!' })(); // TODO: Again, shouldn't have to call this
 });
 ```
 
@@ -102,7 +103,7 @@ const Child = component({}, ({ $ }) => {
 Add `when: boolean` to the element record:
 
 ```js
-import { component } from 'sui';
+import { component } from '@kashuab/sui';
 
 const defaultState = {
   count: 0,
@@ -137,7 +138,7 @@ export const Counter = component(defaultState, ({ state, $ }) => {
 Pass `when: boolean` to the component when you call it:
 
 ```js
-import { component } from 'sui';
+import { component } from '@kashuab/sui';
 
 const defaultState = {
   count: 0,
@@ -174,7 +175,7 @@ const CountedToTen = component({}, ({ $ }) => {
 ## Provide child component `input`
 
 ```js
-import {component} from 'sui';
+import {component} from '@kashuab/sui';
 
 export const App = component({ count: 0 }, ({ state, $ }) => {
   const container = $.div();
@@ -211,7 +212,7 @@ You're probably used to passing functions as "props" to children. Sui segregates
 Pass an `events` object to the child component, and if you've got TypeScript, enjoy those type annotations.
 
 ```js
-import {component} from 'sui';
+import {component} from '@kashuab/sui';
 
 export const App = component({ count: 0 }, ({ state, $ }) => {
   const container = $.div();
@@ -226,8 +227,8 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
   
   return (
     container(
-      counter(),
-      display,
+      counter,
+      display(),
     )
   );
 });
@@ -250,7 +251,7 @@ export const Counter = component({ count: 0 }, ({ input, emit, $ }) => {
 ## Iterative rendering
 
 ```js
-import { component } from 'sui';
+import { component } from '@kashuab/sui';
 import { times } from 'lodash';
 
 export const App = component({ count: 0 }, ({ state, $ }) => {
