@@ -9,9 +9,11 @@
   },
   "version": "0.1.2",
   "main": "dist/sui.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build-types": "tsc",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "analyze": "ANALYZE_BUNDLE=true yarn build"
