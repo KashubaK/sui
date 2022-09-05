@@ -31,6 +31,7 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
       click: () => {
         state.count++;
         output.count = state.count;
+        console.log('bopbey', state.count)
       }
     }
   });
@@ -52,15 +53,15 @@ export const Counter = component<State, Input, Output>(defaultCounterState, ({ s
   });
 
   const wow = Wow({
-    input: {},
-    when: state.count === 10,
+    input: { count: state.count },
+    when: state.count === 10
   });
 
   return container(
-    incrementor,
+    incrementor(),
     countDisplay(
       wow,
     ),
-    decrementor,
+    decrementor(),
   );
-});
+}, 'Counter');

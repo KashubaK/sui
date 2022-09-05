@@ -1,10 +1,13 @@
 import {component} from "../../src/component";
 
-export const Wow = component({}, ({ $ }) => {
+type State = {}
+type Input = { count: number }
+
+export const Wow = component<State, Input, {}>({}, ({ input, $ }) => {
   const wowMessage = $.h1({
     class: 'Wow',
-    text: 'Wow, you counted to 10!'
+    text: `Wow, you counted to ${input.count}!`
   })
 
   return wowMessage();
-})
+}, 'Wow')

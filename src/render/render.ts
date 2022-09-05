@@ -1,7 +1,7 @@
 import {ElementRecord} from "../elements/element";
 import {action} from "mobx";
 
-export function renderElement(record: ElementRecord): HTMLElement {
+export function reconcileElement(record: ElementRecord): HTMLElement {
   if (!record.element) {
     record.element = document.createElement(record.tagName);
     record.onElementMount?.();
