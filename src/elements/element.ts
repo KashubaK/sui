@@ -53,7 +53,7 @@ export type ElementRenderer = (() => ElementRecord) & {
 };
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
-  return (description: ElementDescription): ElementInstanceGenerator => {
+  return (description: ElementDescription = {}): ElementInstanceGenerator => {
     const instanceGenerator = (...children: ElementRenderer[]): ElementRenderer => {
       const renderer = () => {
         const record: ElementRecord = {

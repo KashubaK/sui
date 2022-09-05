@@ -8,7 +8,6 @@ This is just an idea that may never come to fruition. There is much work to do b
 
 ## TODO
 
-- Rendering optimization (currently using a very naive approach)
 - First-class routing
 - First-class data fetching
 - First-class test utilities
@@ -85,7 +84,7 @@ export const Parent = component({}, ({ $ }) => {
   const heading = $.h1({ text: 'We have an important, never-before-seen message for you.' });
   
   return container(
-    heading,
+    heading(),
     Child({})
   );
 })
@@ -123,9 +122,9 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   });
   
   return container(
-    increment,
-    count,
-    countedToTen
+    increment(),
+    count(),
+    countedToTen()
   );
 });
 ```
@@ -158,22 +157,124 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   })
 
   return container(
-    increment,
-    count,
-    countedToTen
+    increment(),
+    count(),
+    countedToTen()
   );
 });
 
 const CountedToTen = component({}, ({ $ }) => {
-  return $.span({ text: 'You counted to ten!' });
+  return $.span({ text: 'You counted to ten!' })();
 });
 ```
 
+## Provide child component `input`
+
+```js
+import {component} from 'sui';
+
+export const App = component({ count: 0 }, ({ state, $ }) => {
+  const container = $.div();
+
+  const counter = $.button({
+    text: 'Increment',
+    events: {
+      click: () => state.count++
+    }
+  });
+  
+  const display = CountDisplay({ input: { count: state.count } });
+  
+  return (
+    container(
+      counter(),
+      display,
+    )
+  );
+});
+
+export const CountDisplay = component({}, ({ input, $ }) => {
+  const display = $.span({ text: `Current count: ${input.count}` });
+  
+  return display();
+})
+```
+
+## Handle data propagated by child components
+
+You're probably used to passing functions as "props" to children. Sui segregates the idea of "props" into two things:
+`input` and `events`. This separation provides more clarity to each concern as opposed to grouping them together.
+
+Pass an `events` object to the child component, and if you've got TypeScript, enjoy those type annotations.
+
+```js
+import {component} from 'sui';
+
+export const App = component({ count: 0 }, ({ state, $ }) => {
+  const container = $.div();
+  
+  const counter = Counter({
+    events: {
+      count: newCount => state.count = newCount,
+    }
+  })
+  
+  const display = $.span({ text: `Current count: ${state.count}` });
+  
+  return (
+    container(
+      counter(),
+      display,
+    )
+  );
+});
+
+export const Counter = component({ count: 0 }, ({ input, emit, $ }) => {
+  const counter = $.button({
+    text: 'Increment',
+    events: {
+      click: () => {
+        state.count++;
+        emit('count', state.count);
+      }
+    }
+  });
+  
+  return counter();
+})
+```
+
+## Iterative rendering
+
+```js
+import { component } from 'sui';
+import { times } from 'lodash';
+
+export const App = component({ count: 0 }, ({ state, $ }) => {
+  const container = $.div();
+
+  const counter = $.button({
+    text: 'Increment',
+    events: {
+      click: () => state.count++
+    }
+  });
+  
+  const listItems = times(state.count, (i) => $.li({ text: `List item ${i}` }));
+  const list = $.ul();
+
+  return (
+    container(
+      counter(),
+      list(...listItems),
+    )
+  );
+});
+```
+
+**This works with components too! :)**
+
 ## TODO: Provide children to nested components
-
-## TODO: Provide child component `input`
-
-## TODO: Handle child component `output`
 
 
 
