@@ -1,5 +1,6 @@
 import {component} from "../../src/component";
 import {Wow} from "./Wow";
+import {ListItem} from "./ListItem";
 
 type Input = {
   defaultCount: number;
@@ -53,7 +54,7 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
   });
 
   const listItems = [...Array(state.count)].map((_, i) => {
-    return $.li({ text: `List item ${i + 1}` })();
+    return ListItem({ input: { text: `List item ${i + 1}` } });
   })
 
   const list = $.ul({});
