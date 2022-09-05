@@ -1,6 +1,7 @@
 import {action, observable} from "mobx";
 import {createElementGenerator, ElementRecord, ElementRenderer} from "./elements/element";
 import {elements} from "./elements/elements";
+import {v4} from "uuid";
 
 type ComponentEvents = Record<string, (...args: any[]) => unknown>
 
@@ -25,18 +26,22 @@ type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents> = {
 type ComponentInstanceGenerator<State, Input, Events extends ComponentEvents> = (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<State, Input>;
 export type ComponentRenderer<State = any, Input = any> = ((state?: State, input?: Input) => ElementRecord) & {
   type: 'component';
-  input?: Input;
+  key: string;
+  input: Input;
   parent?: ElementRecord;
   when?: boolean;
+  displayName: string;
 };
 
 export function component<
   State extends Record<string, unknown>,
   Input extends Record<string, unknown>,
   Events extends ComponentEvents
->(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Events>, name?: string): ComponentInstanceGenerator<State, Input, Events> {
+>(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Events>, name = 'Unknown'): ComponentInstanceGenerator<State, Input, Events> {
   const generateInstance: ComponentInstanceGenerator<State, Input, Events> = ({ input, events, when }) => {
     const initialState = observable(typeof defaultState === 'function' ? defaultState(input) : defaultState);
+
+    const key = v4();
 
     const renderer: ComponentRenderer<State, Input> = (state = initialState) => {
       const componentElements = elements();
@@ -54,13 +59,16 @@ export function component<
       record.state = state;
       record.input = input;
       record.type = 'component';
+      record.key = key;
 
       return record;
     }
 
+    renderer.key = key;
     renderer.type = 'component';
     renderer.input = input;
     renderer.when = when;
+    renderer.displayName = name;
 
     return renderer;
   }

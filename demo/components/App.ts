@@ -29,7 +29,7 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
     container(
       count(),
       counter,
-      rerender()
+      rerender(),
     )
   )
 }, 'App');

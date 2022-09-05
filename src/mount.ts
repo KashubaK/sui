@@ -11,14 +11,14 @@ function isComponentRenderer(render: ComponentRenderer | ElementRenderer): rende
 }
 
 export function mount(render: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
-  autorun(() => {
+  const logic = () => {
     let currentRecord = render.parent ? render.parent.childRecords[childIndex] : rootRecord;
 
     if (currentRecord && isComponentRenderer(render)) {
       if (
         isEqual(currentRecord.state, currentRecord.lastState) &&
         isEqual(render.input, currentRecord.lastInput) &&
-        render.when === currentRecord.mounted
+        (render.when || true) === currentRecord.mounted
       ) {
         return;
       }
@@ -28,7 +28,6 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     if (currentRecord) {
       currentRecord.description = record.description;
-      currentRecord.children = record.children;
     } else {
       currentRecord = record;
     }
@@ -57,10 +56,26 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       currentRecord.mounted = false;
     }
 
+    currentRecord.children = record.children;
+
     currentRecord.children?.forEach((child, index) => {
       child.parent = currentRecord!;
 
       mount(child, element, index)
     });
-  })
+
+    currentRecord.childRecords = currentRecord.childRecords.filter((child, index) => {
+      // Something about this is super funky. It works, but it's WEIRD...
+      if (!currentRecord?.children[index]) {
+        child.element?.parentElement?.removeChild(child.element);
+        return false;
+      }
+
+      return true;
+    })
+  };
+
+  logic();
+
+  autorun(logic);
 }

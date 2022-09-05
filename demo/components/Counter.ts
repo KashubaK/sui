@@ -18,10 +18,6 @@ const defaultCounterState = (input: Input): State => ({ count: input.defaultCoun
 export const Counter = component<State, Input, Events>(defaultCounterState, ({ state, emit, $ }) => {
   const container = $.div({
     class: 'Counter',
-    style: {
-      display: 'flex',
-      alignItems: 'center'
-    }
   });
 
   const incrementor = $.button({
@@ -53,9 +49,14 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
 
   const wow = Wow({
     input: {},
-    // input: { count: state.count },
     when: state.count === 10
   });
+
+  const listItems = [...Array(state.count)].map((_, i) => {
+    return $.li({ text: `List item ${i + 1}` })();
+  })
+
+  const list = $.ul({});
 
   return container(
     incrementor(),
@@ -63,5 +64,12 @@ export const Counter = component<State, Input, Events>(defaultCounterState, ({ s
       wow,
     ),
     decrementor(),
+    list(
+      $.li({ text: 'First item' })(),
+      ...listItems.slice(0, 5),
+      $.li({ text: 'AFTER 5', when: listItems.length >= 5 })(),
+      ...listItems.slice(5),
+      $.li({ text: 'Last' })(),
+    )
   );
 }, 'Counter');
