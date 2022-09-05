@@ -18,7 +18,7 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       if (
         isEqual(currentRecord.state, currentRecord.lastState) &&
         isEqual(render.input, currentRecord.lastInput) &&
-        (render.when || true) === currentRecord.mounted
+        (render.when ?? true) === currentRecord.mounted
       ) {
         return;
       }
@@ -75,7 +75,9 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
     })
   };
 
-  logic();
 
+  // This technically gets run twice on first render.
+  // However, the subsequent SHOULD do nothing as the state/input/when haven't changed
+  logic();
   autorun(logic);
 }
