@@ -1,34 +1,28 @@
 import {component} from "../../src/component";
-import { Counter } from "./Counter";
+import Router from "../../src/components/Router";
+import Home from "../routes/Home";
+import Login from "../routes/Login";
+import User from "../routes/User";
 
-export const App = component({ count: 0 }, ({ state, $ }) => {
-  const rerender = $.button({
-    text: `Re-render App`,
-    events: {
-      click: () => {
-        state.count++
-      }
+const Fallback = component({}, function Fallback({ $ }) {
+  const heading = $.h1({ text: 'No route matched.' });
+
+  return heading();
+})
+
+export default component({}, function App({ $ }) {
+  const router = Router({
+    input: {
+      routes: {
+        '/': Home,
+        '/login': Login,
+        '/user/:id': User,
+      },
+      fallback: Fallback
     }
-  });
+  })
 
-  const container = $.div({ class: `ProperDemo` });
+  const container = $.div();
 
-  const counter = Counter({
-    input: { defaultCount: 0 },
-    events: {
-      count(count) {
-        state.count = count;
-      }
-    },
-  });
-
-  const count = $.span({ text: `Count: ${state.count}` })
-
-  return (
-    container(
-      count(),
-      counter,
-      rerender(),
-    )
-  )
-}, 'App');
+  return container(router);
+});

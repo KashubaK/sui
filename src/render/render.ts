@@ -63,4 +63,14 @@ export function applyElementDescription(record: ElementRecord) {
       element.addEventListener(beep, listener as any);
     }
   }
+
+  if (description.attributes) {
+    for (const key in description.attributes) {
+      const beep = key as keyof typeof description.attributes;
+      if (!(beep in element)) continue;
+
+      // TODO: Why is beep never?
+      element[beep] = description.attributes[beep];
+    }
+  }
 }

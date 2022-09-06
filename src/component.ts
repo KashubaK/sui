@@ -2,9 +2,9 @@ import {action, observable} from "mobx";
 import {createElementGenerator, ElementRecord, ElementRenderer} from "./elements/element";
 import {elements} from "./elements/elements";
 
-type ComponentEvents = Record<string, (...args: any[]) => unknown>
+export type ComponentEvents = Record<string, (...args: any[]) => unknown>
 
-type ComponentUtils<State, Input, Events extends ComponentEvents> = {
+export type ComponentUtils<State, Input, Events extends ComponentEvents> = {
   state: State;
   input: Input;
   emit: (eventName: keyof Events, value: ReturnType<Events[typeof eventName]>) => void;
@@ -13,30 +13,35 @@ type ComponentUtils<State, Input, Events extends ComponentEvents> = {
   };
 };
 
-type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
-type ComponentDefinition<State, Input, Events extends ComponentEvents> = ((utils: ComponentUtils<State, Input, Events>) => ElementRenderer);
+export type ComponentDefaultState<State, Input> = State | ((input: Input) => State);
+export type ComponentDefinition<State, Input, Events extends ComponentEvents> = ((utils: ComponentUtils<State, Input, Events>) => ElementRenderer);
 
-type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents> = {
+export type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents> = {
   input: Input;
   events?: Events,
   when?: boolean;
 }
 
-type ComponentInstanceGenerator<State, Input, Events extends ComponentEvents> = (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<State, Input>;
+export type ComponentInstanceGenerator<State, Input, Events extends ComponentEvents> = (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<State, Input>;
 export type ComponentRenderer<State = any, Input = any> = ((state?: State, input?: Input) => ElementRecord) & {
   type: 'component';
   input: Input;
   parent?: ElementRecord;
   when?: boolean;
-  displayName: string;
+  componentName: string;
   __lastRenderTime?: number;
 };
 
 export function component<
-  State extends Record<string, unknown>,
-  Input extends Record<string, unknown>,
-  Events extends ComponentEvents
->(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Events>, name = 'Unknown'): ComponentInstanceGenerator<State, Input, Events> {
+  State = {},
+  Input = {},
+  Events extends ComponentEvents = {}
+>(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Events>): ComponentInstanceGenerator<State, Input, Events> {
+  const componentName = define.name;
+  if (!componentName) {
+    console.warn('[Sui] You must use a named function when creating a component.');
+  }
+
   const generateInstance: ComponentInstanceGenerator<State, Input, Events> = ({ input, events, when }) => {
     const initialState = observable(typeof defaultState === 'function' ? defaultState(input) : defaultState);
 
@@ -52,6 +57,7 @@ export function component<
         $: componentElements,
       })();
 
+      record.name = componentName;
       record.description.when = when;
       record.state = state;
       record.input = input;
@@ -63,7 +69,7 @@ export function component<
     renderer.type = 'component';
     renderer.input = input;
     renderer.when = when;
-    renderer.displayName = name;
+    renderer.componentName = componentName;
 
     return renderer;
   }

@@ -27,7 +27,13 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
     const record = render(currentRecord?.state);
 
     if (currentRecord) {
-      currentRecord.description = record.description;
+      if (currentRecord.name !== record.name) {
+        // Don't remove the conflicted record, will be cleaned up later if necessary.
+        render.parent?.childRecords?.splice(childIndex, 0, record);
+        currentRecord = record;
+      } else {
+        currentRecord.description = record.description;
+      }
     } else {
       currentRecord = record;
     }
