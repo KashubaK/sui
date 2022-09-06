@@ -4,10 +4,6 @@ type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
     (<T>() => T extends Y ? 1 : 2) ? A : B;
 
-type IfNotEquals<X, Y, A = X, B = never> =
-  (<T>() => T extends X ? 1 : 2) extends
-    (<T>() => T extends Y ? 1 : 2) ? B : A;
-
 type WritableKeys<T> = {
   [P in keyof T]-?: IfEquals<{
     [Q in P]: T[P];
@@ -17,7 +13,7 @@ type WritableKeys<T> = {
 }[keyof T];
 
 type NonFunctionKeys<T> = {
-  [P in keyof T]-?: IfNotEquals<T[P], string | number>
+  [P in keyof T]-?: IfEquals<T[P], () => unknown>
 }[keyof T];
 
 export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
@@ -27,7 +23,7 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
   }>;
   style?: Partial<Pick<CSSStyleDeclaration, WritableKeys<CSSStyleDeclaration> & NonFunctionKeys<CSSStyleDeclaration>>>;
   // TODO: NonFunctionKeys here is making this Record<never, unknown>
-  attributes?: Partial<Pick<HTMLElementTagNameMap[TagName], WritableKeys<HTMLElementTagNameMap[TagName]> & NonFunctionKeys<HTMLElementTagNameMap[TagName]>>>;
+  attributes?: Partial<Pick<HTMLElementTagNameMap[TagName], WritableKeys<HTMLElementTagNameMap[TagName]>>>;
   text?: string;
   html?: string;
   when?: boolean;

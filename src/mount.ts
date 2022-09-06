@@ -1,7 +1,7 @@
 import {ElementRecord, ElementRenderer} from "./elements/element";
 import {ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
-import {IReactionDisposer, reaction} from "mobx";
+import {autorun, IReactionPublic} from "mobx";
 
 let rootRecord: ElementRecord | null = null;
 
@@ -10,16 +10,13 @@ function isComponentRenderer(render: ComponentRenderer | ElementRenderer): rende
 }
 
 export function mount(render: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
-  const perform = (disposeLastStateReaction?: IReactionDisposer) => {
+  const perform = (lastReaction?: IReactionPublic) => {
     const start = performance.now();
     let currentRecord = render.parent ? render.parent.childRecords[childIndex] : rootRecord;
 
     if (currentRecord && isComponentRenderer(render)) {
-      if (
-        shallowEqual(currentRecord.state, currentRecord.lastState) &&
-        shallowEqual(render.input, currentRecord.lastInput) &&
-        (render.when ?? true) === currentRecord.mounted
-      ) {
+      if (!componentRequiresUpdate(currentRecord, render)) {
+        console.log('nah dawg');
         return;
       }
     }
@@ -89,20 +86,62 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       render.__lastRenderTime = end - start;
     }
 
-    disposeLastStateReaction?.();
+    lastReaction?.dispose();
+
+    let firstRun = true;
 
     // UGLY, probably an anti-pattern, but works.
-    const nextDispose: IReactionDisposer = reaction(() => {
-      return {
-        ...currentRecord?.state,
-        ...currentRecord?.input,
+    autorun((r) => {
+      deepRead(currentRecord?.state || {});
+      deepRead(currentRecord?.input || {});
+
+      if (firstRun) {
+        firstRun = false;
+        return;
+      } else {
+        perform(r);
       }
-    }, () => {
-      perform(nextDispose)
     });
   };
 
   perform();
+}
+
+function componentRequiresUpdate(record: ElementRecord, render: ComponentRenderer) {
+  if (!shallowEqual(record.state, record.lastState)) return true;
+  if (!shallowEqual(record.input, record.lastInput)) return true;
+  if ((render.when ?? true) !== record.mounted) return true;
+  if (deepStateChanged(record.state || {}, record.lastState || {})) return true;
+  if (deepStateChanged(record.input || {}, record.lastInput || {})) return true;
+
+  return false;
+}
+
+function deepStateChanged(current: object, last: object): boolean {
+  for (const key in current) {
+    const currentValue = current[key as keyof typeof current];
+    const lastValue = last[key as keyof typeof current];
+
+    if (!currentValue !== lastValue) return true;
+
+    if (typeof currentValue === 'object') {
+      const objectsChanged = deepStateChanged(currentValue, lastValue);
+
+      if (objectsChanged) return true;
+    }
+  }
+
+  return false
+}
+
+function deepRead(object: any = {}) {
+  for (const key in object) {
+    object[key];
+
+    if (typeof object[key] === 'object') {
+      deepRead(object[key]);
+    }
+  }
 }
 
 function shallowEqual(a: Record<string, unknown> = {}, b: Record<string, unknown> = {}) {

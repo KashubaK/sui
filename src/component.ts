@@ -33,8 +33,8 @@ export type ComponentRenderer<State = any, Input = any> = ((state?: State, input
 };
 
 export function component<
-  State = {},
-  Input = {},
+  State extends object,
+  Input extends object,
   Events extends ComponentEvents = {}
 >(defaultState: ComponentDefaultState<State, Input>, define: ComponentDefinition<State, Input, Events>): ComponentInstanceGenerator<State, Input, Events> {
   const componentName = define.name;
@@ -43,7 +43,7 @@ export function component<
   }
 
   const generateInstance: ComponentInstanceGenerator<State, Input, Events> = ({ input, events, when }) => {
-    const initialState = observable(typeof defaultState === 'function' ? defaultState(input) : defaultState);
+    const initialState = observable(defaultState instanceof Function ? defaultState(input) : defaultState);
 
     const renderer: ComponentRenderer<State, Input> = (state = initialState) => {
       const componentElements = elements();

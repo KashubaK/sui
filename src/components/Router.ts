@@ -6,10 +6,6 @@ export interface IRouteInput {
   query: URLSearchParams;
 }
 
-interface IRoute {
-  component: ComponentInstanceGenerator<any, any, any>;
-}
-
 type Input = {
   routes: Record<string, ComponentInstanceGenerator<any, IRouteInput, any>>;
   fallback: ComponentInstanceGenerator<any, any, any>;
@@ -23,7 +19,6 @@ type State = {
 const defaultState = { currentRoute: location.pathname, removeNavigateListener: null };
 
 export default component<State, Input, {}>(defaultState, function Router({ state, input, $ }) {
-
   const locationPathSegments = state.currentRoute.split('/');
   locationPathSegments.shift();
 
@@ -94,7 +89,6 @@ export function navigate(url: string) {
 export function onNavigate(callback: (newPath: string) => unknown) {
   const handleNavigate = action((e: Event | PopStateEvent) => {
     if (e instanceof CustomEvent) {
-
       const { url } = e.detail;
 
       callback(url);

@@ -49,28 +49,36 @@ export function applyElementDescription(record: ElementRecord) {
     record.listeners ||= {};
 
     for (const key in description.events) {
-      const beep = key as keyof typeof description.events;
-      const listener = action(description.events[beep]);
+      const typedKey = key as keyof typeof description.events;
+      const listener = action(description.events[typedKey]);
       if (!listener) continue;
 
-      if (record.listeners[beep]) {
-        element.removeEventListener(beep, record.listeners[beep]);
+      if (record.listeners[typedKey]) {
+        element.removeEventListener(typedKey, record.listeners[typedKey]);
       }
 
-      record.listeners[beep] = listener;
+      record.listeners[typedKey] = listener;
 
       // TODO: listener types
-      element.addEventListener(beep, listener as any);
+      element.addEventListener(typedKey, listener as any);
     }
   }
 
-  if (description.attributes) {
-    for (const key in description.attributes) {
-      const beep = key as keyof typeof description.attributes;
-      if (!(beep in element)) continue;
+  const { attributes } = description;
 
-      // TODO: Why is beep never?
-      element[beep] = description.attributes[beep];
-    }
+  if (attributes) {
+    for (const key in attributes) {
+      if (!(key in element)) continue;
+      const typedKey = key as keyof typeof attributes;
+
+      if (typeof element[typedKey] === 'function' || typeof attributes[typedKey] === 'function') {
+        console.log('[Sui] You cannot set functions within element attributes.');
+        continue;
+      }
+
+      // TODO: Figure out element attribute key types
+      // @ts-ignore
+      element[typedKey] = attributes[typedKey];
+    };
   }
 }
