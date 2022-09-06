@@ -10,6 +10,7 @@ export default component<{}, IRouteInput>({}, function Home({ $ }) {
   const loginLink = Link({ input: { to: '/login', text: 'Login' } })
   const userLink = Link({ input: { to: '/user/12345', text: 'User 12345' } })
   const dataLink = Link({ input: { to: '/data', text: 'Data' } })
+  const stressLink = Link({ input: { to: '/stress', text: 'Stress test' } })
   const lineBreak = $.br();
 
   return container(
@@ -18,6 +19,8 @@ export default component<{}, IRouteInput>({}, function Home({ $ }) {
     lineBreak(),
     userLink,
     lineBreak(),
-    dataLink
+    dataLink,
+    lineBreak(),
+    stressLink
   );
 })

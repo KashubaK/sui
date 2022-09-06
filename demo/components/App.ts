@@ -4,6 +4,7 @@ import Home from "../routes/Home";
 import Login from "../routes/Login";
 import User from "../routes/User";
 import FetchData from "../routes/FetchData";
+import Stress from "../routes/Stress";
 
 const Fallback = component({}, function Fallback({ $ }) {
   const heading = $.h1({ text: 'No route matched.' });
@@ -18,6 +19,7 @@ export default component({}, function App({ $ }) {
         '/': Home,
         '/login': Login,
         '/data': FetchData,
+        '/stress': Stress,
         '/user/:id': User,
       },
       fallback: Fallback

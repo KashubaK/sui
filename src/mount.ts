@@ -89,10 +89,6 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     const end = performance.now();
 
-    if (isComponentRenderer(render)) {
-      render.__lastRenderTime = end - start;
-    }
-
     lastReaction?.dispose();
 
     let firstRun = true;
@@ -109,6 +105,10 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
         perform(r);
       }
     });
+
+    if (isComponentRenderer(render)) {
+      render.__lastRenderTime = end - start;
+    }
   };
 
   perform();
