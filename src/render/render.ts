@@ -4,7 +4,6 @@ import {action} from "mobx";
 export function reconcileElement(record: ElementRecord): HTMLElement {
   if (!record.element) {
     record.element = document.createElement(record.tagName);
-    record.onElementMount?.();
   }
 
   applyElementDescription(record);
@@ -24,7 +23,7 @@ export function applyElementDescription(record: ElementRecord) {
         element.firstChild.textContent = description.text;
       }
     } else {
-      element.prepend(document.createTextNode(description.text));
+      element.prepend(description.text);
     }
   }
 

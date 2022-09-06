@@ -52,6 +52,7 @@ type ElementInstanceGenerator = (...children: ElementRenderer[]) => ElementRende
 
 export type ElementRenderer = (() => ElementRecord) & {
   parent?: ElementRecord;
+  componentName: string;
   type: 'element' | 'component';
 };
 
@@ -73,6 +74,7 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
       }
 
       renderer.type = 'element';
+      renderer.componentName = tagName;
 
       return renderer as ElementRenderer;
     }

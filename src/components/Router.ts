@@ -19,15 +19,16 @@ type State = {
 const defaultState = { currentRoute: location.pathname, removeNavigateListener: null };
 
 export default component<State, Input, {}>(defaultState, function Router({ state, input, $ }) {
+  console.log('uhhhh');
   const locationPathSegments = state.currentRoute.split('/');
   locationPathSegments.shift();
 
-  state.removeNavigateListener?.();
-  state.removeNavigateListener = onNavigate((url) => {
+  // How does this not cause a double-render on mount?
+  state.removeNavigateListener ||= onNavigate((url) => {
     state.currentRoute = url;
   });
 
-  const container = $.div();
+  const container = $.div({ class: 'Router' });
 
   return container(
     getMatchedRoute(),

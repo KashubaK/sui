@@ -24,7 +24,7 @@ export default component({}, function App({ $ }) {
     }
   })
 
-  const container = $.div();
+  const container = $.div({ class: 'App' });
 
   return container(router);
 });

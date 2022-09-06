@@ -1,7 +1,9 @@
+// This is getting a bit out of hand...
+
 import {ElementRecord, ElementRenderer} from "./elements/element";
 import {ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
-import {autorun, IReactionPublic} from "mobx";
+import {autorun, IReactionPublic, remove} from "mobx";
 
 let rootRecord: ElementRecord | null = null;
 
@@ -16,26 +18,32 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     if (currentRecord && isComponentRenderer(render)) {
       if (!componentRequiresUpdate(currentRecord, render)) {
-        console.log('nah dawg');
         return;
       }
     }
 
-    const record = render(currentRecord?.state);
+    let record;
 
     if (currentRecord) {
-      if (currentRecord.name !== record.name) {
-        // Don't remove the conflicted record, will be cleaned up later if necessary.
-        render.parent?.childRecords?.splice(childIndex, 0, record);
+      if (currentRecord.name !== render.componentName) {
+        record = render();
+
+        const removedRecord = render.parent?.childRecords?.splice(childIndex, 1, record);
+        if (removedRecord?.[0]) {
+          unmountElement(removedRecord[0]);
+        }
+
         currentRecord = record;
       } else {
+        record = render();
         currentRecord.description = record.description;
       }
     } else {
+      record = render();
       currentRecord = record;
     }
 
-    currentRecord.state ||= record.state;
+    // currentRecord.state ||= record.state;
     rootRecord ||= currentRecord;
 
     currentRecord.lastState = { ...currentRecord.state };
@@ -56,8 +64,7 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
         currentRecord.mounted = true;
       }
     } else if (currentRecord.mounted) {
-      parentElement.removeChild(element);
-      currentRecord.mounted = false;
+      unmountElement(currentRecord);
     }
 
     currentRecord.children = record.children;
@@ -107,7 +114,13 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
   perform();
 }
 
+function unmountElement(record: ElementRecord) {
+  record.element?.parentElement?.removeChild(record.element);
+  record.mounted = false;
+}
+
 function componentRequiresUpdate(record: ElementRecord, render: ComponentRenderer) {
+  if (record.name !== render.componentName) return true;
   if (!shallowEqual(record.state, record.lastState)) return true;
   if (!shallowEqual(record.input, record.lastInput)) return true;
   if ((render.when ?? true) !== record.mounted) return true;
