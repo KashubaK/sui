@@ -3,7 +3,7 @@
 import {ElementRecord, ElementRenderer} from "./elements/element";
 import {ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
-import {autorun, IReactionPublic, remove} from "mobx";
+import {autorun, IReactionPublic} from "mobx";
 
 let rootRecord: ElementRecord | null = null;
 

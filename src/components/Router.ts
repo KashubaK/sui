@@ -19,7 +19,6 @@ type State = {
 const defaultState = { currentRoute: location.pathname, removeNavigateListener: null };
 
 export default component<State, Input, {}>(defaultState, function Router({ state, input, $ }) {
-  console.log('uhhhh');
   const locationPathSegments = state.currentRoute.split('/');
   locationPathSegments.shift();
 
