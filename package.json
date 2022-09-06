@@ -7,7 +7,7 @@
     "name": "Kyle Kashuba",
     "url": "https://github.com/KashubaK"
   },
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "dist/sui.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -25,9 +25,7 @@
     "@types/node": "^18.7.15",
     "rollup-plugin-visualizer": "^5.8.1",
     "typescript": "^4.6.4",
-    "vite": "^3.0.7"
-  },
-  "dependencies": {
+    "vite": "^3.0.7",
     "lodash-es": "^4.17.21",
     "mobx": "^6.6.1"
   }
