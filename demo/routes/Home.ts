@@ -2,7 +2,7 @@ import {component} from "../../src";
 import Link from "../../src/components/Link";
 import {IRouteInput} from "../../src/components/Router";
 
-export default component<{}, IRouteInput>({}, function Home({ $ }) {
+export default component<IRouteInput>(function Home({ $ }) {
   const container = $.div({ class: 'Home' });
 
   const heading = $.h1({ text: 'Home' });

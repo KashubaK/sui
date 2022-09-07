@@ -6,13 +6,11 @@ import User from "../routes/User";
 import FetchData from "../routes/FetchData";
 import Stress from "../routes/Stress";
 
-const Fallback = component({}, function Fallback({ $ }) {
-  const heading = $.h1({ text: 'No route matched.' });
-
-  return heading();
+const Fallback = component(function Fallback({ $ }) {
+  return $.h1({ text: 'No route matched.' });
 })
 
-export default component({}, function App({ $ }) {
+export default component(function App({ $ }) {
   const router = Router({
     input: {
       routes: {

@@ -48,7 +48,7 @@ export type ElementRecord<State = {}, Input = {}, TagName extends keyof HTMLElem
   index?: number;
 }
 
-type ElementInstanceGenerator = (...children: ElementRenderer[]) => ElementRenderer;
+export type ElementInstanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]) => ElementRenderer;
 
 export type ElementRenderer = (() => ElementRecord) & {
   parent?: ElementRecord;
@@ -58,14 +58,21 @@ export type ElementRenderer = (() => ElementRecord) & {
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
   return (description: ElementDescription<TagName> = {}): ElementInstanceGenerator => {
-    const instanceGenerator = (...children: ElementRenderer[]): ElementRenderer => {
-      const renderer = () => {
+    const instanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer => {
+      const generateElementRecord = () => {
         const record: ElementRecord = {
           tagName,
           name: tagName,
           description,
           childRecords: [],
-          children,
+          children: children.map(child => {
+            // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
+            if ('type' in child) {
+              return child;
+            }
+
+            return child();
+          }),
           mounted: false,
           type: 'element',
         };
@@ -73,10 +80,10 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
         return record;
       }
 
-      renderer.type = 'element';
-      renderer.componentName = tagName;
+      generateElementRecord.type = 'element' as const;
+      generateElementRecord.componentName = tagName;
 
-      return renderer as ElementRenderer;
+      return generateElementRecord;
     }
 
     return instanceGenerator;

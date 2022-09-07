@@ -43,7 +43,7 @@ const createFetcher = <Data>(url: string): Fetcher<Data> => {
   return state;
 }
 
-export default component<State, IRouteInput>(defaultState, function FetchData({ state, $ }) {
+export default component<IRouteInput, State>(function FetchData({ state, $ }) {
   state.postsFetcher ??= createFetcher<Post[]>('https://jsonplaceholder.typicode.com/posts');
 
   const container = $.div({ text: "Whats up", class: 'Data' });
@@ -55,15 +55,15 @@ export default component<State, IRouteInput>(defaultState, function FetchData({ 
     const body = $.p({ text: post.body });
 
     return div(
-      title(),
-      body()
+      title,
+      body
     );
   }) || [];
 
   const postList = $.div();
 
   return container(
-    loadingText(),
+    loadingText,
     postList(...posts)
   );
-})
+}, defaultState)

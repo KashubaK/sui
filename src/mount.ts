@@ -44,7 +44,7 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
     rootRecord ||= currentRecord;
 
     currentRecord.lastState = { ...currentRecord.state };
-    currentRecord.lastInput = 'input' in render ? { ...render.input } : {};
+    currentRecord.lastInput = 'input' in render ? { ...(render.input || {}) } : {};
 
     const element = reconcileElement(currentRecord);
 

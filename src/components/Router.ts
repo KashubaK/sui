@@ -1,14 +1,14 @@
 import {component, ComponentInstanceGenerator, ComponentRenderer} from "../component";
 import {action} from "mobx";
 
-export interface IRouteInput {
+export type IRouteInput = {
   params: Record<string, string>;
   query: URLSearchParams;
 }
 
 type Input = {
-  routes: Record<string, ComponentInstanceGenerator<any, IRouteInput, any>>;
-  fallback: ComponentInstanceGenerator<any, any, any>;
+  routes: Record<string, ComponentInstanceGenerator<IRouteInput>>;
+  fallback: ComponentInstanceGenerator;
 };
 
 type State = {
@@ -18,7 +18,7 @@ type State = {
 
 const defaultState = { currentRoute: location.pathname, removeNavigateListener: null };
 
-export default component<State, Input, {}>(defaultState, function Router({ state, input, $ }) {
+export default component<Input, State>(function Router({ state, input, $ }) {
   const locationPathSegments = state.currentRoute.split('/');
   locationPathSegments.shift();
 
@@ -34,7 +34,7 @@ export default component<State, Input, {}>(defaultState, function Router({ state
   );
 
   function getMatchedRoute() {
-    let matchedRoute: ComponentRenderer | null = null;
+    let matchedRoute: ComponentRenderer<IRouteInput> | null = null;
 
     Object.keys(input.routes).reverse().forEach(path => {
       if (matchedRoute) return;
@@ -74,9 +74,9 @@ export default component<State, Input, {}>(defaultState, function Router({ state
       matchedRoute = input.routes[path]({ input: { params, query: new URLSearchParams(location.search) } })
     });
 
-    return matchedRoute || input.fallback({ input: {} });
+    return matchedRoute || input.fallback();
   }
-});
+}, defaultState);
 
 export function navigate(url: string) {
   history.pushState({}, '', url);

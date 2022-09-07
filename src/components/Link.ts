@@ -6,7 +6,7 @@ type Input = {
   text: string;
 }
 
-export default component<{}, Input>({}, function Link({ input, $ }) {
+export default component<Input>(function Link({ input, $ }) {
   const anchor = $.a({
     text: input.text,
     attributes: { href: input.to },
@@ -19,4 +19,4 @@ export default component<{}, Input>({}, function Link({ input, $ }) {
   });
 
   return anchor();
-})
+});

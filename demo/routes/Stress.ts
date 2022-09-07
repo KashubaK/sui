@@ -2,7 +2,7 @@ import {component} from "../../src";
 import {IRouteInput} from "../../src/components/Router";
 import {times} from "lodash-es";
 
-export default component<{ count: number }, IRouteInput>({ count: 0 }, function Stress({ state, $ }) {
+export default component<IRouteInput, { count: number }>(function Stress({ state, $ }) {
   const container = $.div();
   const heading = $.h1({ text: 'Stress test' });
   const increaseButton = $.button({
@@ -32,4 +32,4 @@ export default component<{ count: number }, IRouteInput>({ count: 0 }, function 
   const list = $.ul();
 
   return container(heading(), increaseButton(), decreaseButton(), list(...listItems));
-})
+}, { count: 0 })
