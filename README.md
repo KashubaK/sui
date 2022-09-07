@@ -281,6 +281,10 @@ export const App = component(function App({ state, $ }) {
 
 **This works with components too! :)**
 
+## TODO: TypeScript documentation
+
+For now, see [the demo source](demo).
+
 ## TODO: Provide children to nested components
 
 
