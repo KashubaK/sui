@@ -35,12 +35,13 @@ No transpilation. You can even import this straight into the browser.
 ```js
 import { component, mount } from '@kashuab/sui';
 
-// TODO: Stateless components shouldn't require an explicit empty state object
-export const Heading = component({}, ({ $ }) => {
+// You need to use named functions!
+// This may change in the future to reduce repetition.
+export const Heading = component(function Heading({ $ }) {
   return $.h1({ text: 'Hello world!' });
 });
 
-mount(Heading({ input: {} }), document.body);
+mount(Heading(), document.body);
 ```
 
 Modern frameworks out that don't seem to care that developers aren't writing straight up JS. This often creates 
@@ -53,11 +54,9 @@ Model your component's state and interact with it directly:
 ```js
 import { component } from '@kashuab/sui';
 
-const defaultState = {
-  count: 0,
-}
+const defaultState = { count: 0 };
 
-export const Counter = component(defaultState, ({ state, $ }) => {
+export const Counter = component(function Counter({ state, $ }) {
   const increment = $.button({
     text: 'Increment',
     events: {
@@ -70,10 +69,10 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   const container = $.div();
   
   return container(
-    increment(), // TODO: You shouldn't have to call these when they have no children.
-    count()
+    increment,
+    count
   );
-});
+}, defaultState);
 ```
 
 ## Nesting components
@@ -83,18 +82,19 @@ Call the component function:
 ```js
 import { component } from '@kashuab/sui';
 
-export const Parent = component({}, ({ $ }) => {
+export const Parent = component(function Parent({ $ }) {
   const container = $.div();
   const heading = $.h1({ text: 'We have an important, never-before-seen message for you.' });
+  const child = Child();
   
   return container(
-    heading(),
-    Child({ input: {} }) // TODO: When a child doesn't need input, you shouldn't have to pass an empty object
+    heading,
+    child
   );
 })
 
-const Child = component({}, ({ $ }) => {
-  return $.span({ text: 'Hello world!' })(); // TODO: Again, shouldn't have to call this
+const Child = component(function Child({ $ })  {
+  return $.span({ text: 'Hello world!' });
 });
 ```
 
@@ -105,11 +105,9 @@ Add `when: boolean` to the element record:
 ```js
 import { component } from '@kashuab/sui';
 
-const defaultState = {
-  count: 0,
-}
+const defaultState = { count: 0 };
 
-export const Counter = component(defaultState, ({ state, $ }) => {
+export const Counter = component(function Counter({ state, $ }) {
   const container = $.div();
   
   const increment = $.button({
@@ -126,11 +124,11 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   });
   
   return container(
-    increment(),
-    count(),
-    countedToTen()
+    increment,
+    count,
+    countedToTen
   );
-});
+}, defaultState);
 ```
 
 ### Conditional rendering child components
@@ -140,11 +138,9 @@ Pass `when: boolean` to the component when you call it:
 ```js
 import { component } from '@kashuab/sui';
 
-const defaultState = {
-  count: 0,
-}
+const defaultState = { count: 0 };
 
-export const Counter = component(defaultState, ({ state, $ }) => {
+export const Counter = component(function Counter({ state, $ }) {
   const container = $.div();
   
   const increment = $.button({
@@ -161,14 +157,14 @@ export const Counter = component(defaultState, ({ state, $ }) => {
   })
 
   return container(
-    increment(),
-    count(),
-    countedToTen()
+    increment,
+    count,
+    countedToTen
   );
-});
+}, defaultState);
 
-const CountedToTen = component({}, ({ $ }) => {
-  return $.span({ text: 'You counted to ten!' })();
+const CountedToTen = component(function CountedToTen({ $ }) {
+  return $.span({ text: 'You counted to ten!' });
 });
 ```
 
@@ -177,7 +173,9 @@ const CountedToTen = component({}, ({ $ }) => {
 ```js
 import {component} from '@kashuab/sui';
 
-export const App = component({ count: 0 }, ({ state, $ }) => {
+const defaultState = { count: 0 };
+
+export const App = component(function App({ state, $ }) {
   const container = $.div();
 
   const counter = $.button({
@@ -191,16 +189,16 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
   
   return (
     container(
-      counter(),
+      counter,
       display,
     )
   );
-});
+}, defaultState);
 
-export const CountDisplay = component({}, ({ input, $ }) => {
+export const CountDisplay = component(function CountDisplay({ input, $ }) {
   const display = $.span({ text: `Current count: ${input.count}` });
   
-  return display();
+  return display;
 })
 ```
 
@@ -214,7 +212,9 @@ Pass an `events` object to the child component, and if you've got TypeScript, en
 ```js
 import {component} from '@kashuab/sui';
 
-export const App = component({ count: 0 }, ({ state, $ }) => {
+const appDefaultState = { count: 0 };
+
+export const App = component(function App({ state, $ }) {
   const container = $.div();
   
   const counter = Counter({
@@ -228,12 +228,14 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
   return (
     container(
       counter,
-      display(),
+      display,
     )
   );
-});
+}, appDefaultState);
 
-export const Counter = component({ count: 0 }, ({ input, emit, $ }) => {
+const counterDefaultState = { count: 0 };
+
+export const Counter = component(function Counter({ input, emit, $ }) {
   const counter = $.button({
     text: 'Increment',
     events: {
@@ -244,8 +246,8 @@ export const Counter = component({ count: 0 }, ({ input, emit, $ }) => {
     }
   });
   
-  return counter();
-})
+  return counter;
+}, counterDefaultState)
 ```
 
 ## Iterative rendering
@@ -254,7 +256,7 @@ export const Counter = component({ count: 0 }, ({ input, emit, $ }) => {
 import { component } from '@kashuab/sui';
 import { times } from 'lodash';
 
-export const App = component({ count: 0 }, ({ state, $ }) => {
+export const App = component(function App({ state, $ }) {
   const container = $.div();
 
   const counter = $.button({
@@ -264,12 +266,13 @@ export const App = component({ count: 0 }, ({ state, $ }) => {
     }
   });
   
+  // You don't have to use lodash!
   const listItems = times(state.count, (i) => $.li({ text: `List item ${i}` }));
   const list = $.ul();
 
   return (
     container(
-      counter(),
+      counter,
       list(...listItems),
     )
   );
