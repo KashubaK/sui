@@ -22,28 +22,25 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
       }
     }
 
-    let record;
+    let record = render();
 
-    if (currentRecord) {
-      if (currentRecord.name !== render.componentName) {
-        record = render();
-
-        const removedRecord = render.parent?.childRecords?.splice(childIndex, 1, record);
+    if (currentRecord && render.parent) {
+      if (!recordIsCompatible(currentRecord, render)) {
+        const removedRecord = render.parent.childRecords.splice(childIndex, 1, record);
         if (removedRecord?.[0]) {
           unmountElement(removedRecord[0]);
         }
 
         currentRecord = record;
       } else {
-        record = render();
-        currentRecord.description = record.description;
+        updateRecord(currentRecord, record);
       }
     } else {
-      record = render();
       currentRecord = record;
     }
 
-    // currentRecord.state ||= record.state;
+    if (render.parent) render.parent.childRecords[childIndex] = currentRecord;
+
     rootRecord ||= currentRecord;
 
     currentRecord.lastState = { ...currentRecord.state };
@@ -53,47 +50,30 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     if (currentRecord.description.when !== false) {
       if (!currentRecord.mounted) {
-        if (render.parent) render.parent.childRecords[childIndex] = currentRecord;
-
-        if (parentElement.children[childIndex]) {
-          parentElement.children[childIndex].insertAdjacentElement('beforebegin', element);
-        } else {
-          parentElement.appendChild(element);
-        }
-
-        currentRecord.mounted = true;
+        mountElement(currentRecord, parentElement, childIndex);
       }
     } else if (currentRecord.mounted) {
       unmountElement(currentRecord);
     }
 
     currentRecord.children = record.children;
-
-    currentRecord.children?.forEach((child, index) => {
+    currentRecord.children.forEach((child, index) => {
       child.parent = currentRecord!;
 
       mount(child, element, index)
     });
 
     if (currentRecord.childRecords.length !== currentRecord.children.length) {
-      currentRecord.childRecords = currentRecord.childRecords.filter((child, index) => {
-        // Something about this is super funky. It works, but it's WEIRD...
-        if (!currentRecord?.children[index]) {
-          child.element?.parentElement?.removeChild(child.element);
-          return false;
-        }
-
-        return true;
-      });
+      cleanChildren(currentRecord);
     }
 
     const end = performance.now();
 
     lastReaction?.dispose();
 
+    // UGLY, probably an anti-pattern, but works.
     let firstRun = true;
 
-    // UGLY, probably an anti-pattern, but works.
     autorun((r) => {
       deepRead(currentRecord?.state || {});
       deepRead(currentRecord?.input || {});
@@ -112,6 +92,47 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
   };
 
   perform();
+}
+
+function updateRecord(record: ElementRecord, newRecord: ElementRecord) {
+  record.description = newRecord.description;
+}
+
+function recordIsCompatible(record: ElementRecord, render: ElementRenderer | ComponentRenderer) {
+  return record.name === render.componentName
+}
+
+function cleanChildren(record: ElementRecord) {
+  record.childRecords = record.childRecords.filter((child, index) => {
+    // Something about this is super funky. It works, but it's WEIRD...
+    if (!record?.children[index]) {
+      child.element?.parentElement?.removeChild(child.element);
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function mountElement(record: ElementRecord, parentElement: HTMLElement, index: number) {
+  if (!parentElement) {
+    console.error(record);
+    throw new Error('Cannot mount element without a parent element');
+  }
+
+  const element = record.element;
+  if (!element) {
+    console.error(record);
+    throw new Error('Cannot mount element when record does not contain an element');
+  }
+
+  if (parentElement.children[index]) {
+    parentElement.children[index].insertAdjacentElement('beforebegin', element);
+  } else {
+    parentElement.appendChild(element);
+  }
+
+  record.mounted = true;
 }
 
 function unmountElement(record: ElementRecord) {
