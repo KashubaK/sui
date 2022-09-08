@@ -3,8 +3,6 @@ import { defineConfig } from "vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import replace from '@rollup/plugin-replace';
 
-console.log('NODE_ENV', process.env.NODE_ENV)
-
 const rollupPlugins = [
   replace({
     __DEV__: process.env.NODE_ENV !== 'production',

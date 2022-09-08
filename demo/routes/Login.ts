@@ -1,7 +1,7 @@
-import {component} from "../../src";
+import {component, ComponentDefinition} from "../../src";
 import {IRouteInput} from "../../src/components/Router";
 
-export default component<IRouteInput, { count: number }>(function Login({ state, $ }) {
+const Login: ComponentDefinition<IRouteInput, { count: number }> = ({ state, $ }) => {
   const container = $.div();
   const heading = $.h1({ text: 'Login' });
   const button = $.button({
@@ -11,5 +11,7 @@ export default component<IRouteInput, { count: number }>(function Login({ state,
     }
   })
 
-  return container(heading(), button());
-}, { count: 0 })
+  return container(heading, button);
+}
+
+export default component(Login, { count: 0 })

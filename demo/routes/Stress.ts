@@ -2,6 +2,18 @@ import {component} from "../../src";
 import {IRouteInput} from "../../src/components/Router";
 import {times} from "lodash-es";
 
+const ListItem = component<{ text: string }, { count: number }>(function ListItem({ state, input, $ }) {
+  const li = $.li({ text: input.text });
+  const increment = $.button({
+    text: `Count: ${state.count}`,
+    events: {
+      click: () => state.count++,
+    }
+  })
+
+  return li(increment);
+}, { count: 0 });
+
 export default component<IRouteInput, { count: number }>(function Stress({ state, $ }) {
   const container = $.div();
   const heading = $.h1({ text: 'Stress test' });
@@ -24,12 +36,10 @@ export default component<IRouteInput, { count: number }>(function Stress({ state
   });
 
   const listItems = times(state.count, (i) => {
-    const listItem = $.li({ text: `List item ${i}` });
-
-    return listItem()
+    return ListItem({ input: { text: `List item ${i}` } });
   });
 
   const list = $.ul();
 
-  return container(heading(), increaseButton(), decreaseButton(), list(...listItems));
+  return container(heading, increaseButton, decreaseButton, list(...listItems));
 }, { count: 0 })

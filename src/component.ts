@@ -24,7 +24,7 @@ export type EmitFn<Events extends ComponentEvents> = (
 ) => void;
 
 export type ComponentDefaultState<Input, State> = State | ((input: Input) => State);
-export type ComponentDefinition<Input, State, Events extends ComponentEvents | undefined > =
+export type ComponentDefinition<Input = undefined, State = undefined, Events extends ComponentEvents | undefined  = undefined> =
   (utils: ComponentUtils<Input, State, Events>) => ElementRenderer | ElementInstanceGenerator;
 
 export type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents | undefined> =
@@ -45,7 +45,7 @@ export type ComponentInstanceGenerator<Input = undefined, State = undefined, Eve
       ? (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<Input, State>
       : (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<Input, State>
 
-export type ComponentRenderer<Input = undefined, State = undefined> = ((state?: State) => ElementRecord) & {
+export type ComponentRenderer<Input = undefined, State = undefined> = ((state?: State) => ElementRecord<Input, State>) & {
   type: 'component';
   input: Input;
   parent?: ElementRecord;
@@ -78,7 +78,7 @@ export function component<
     throw new Error('[Sui] You must use a named function when creating a component.');
   }
 
-  const generateInstance = (args: ComponentInstanceGeneratorArgs<Input, Events>) => {
+  const generateInstance = (args: ComponentInstanceGeneratorArgs<Input, Events> = {} as any) => {
     const { when = true } = args;
 
     const input = 'input' in args ? args.input : undefined;
@@ -90,12 +90,16 @@ export function component<
 
     const renderer: ComponentRenderer<Input, State> = (state = initialState) => {
       let record = define({
-        state: state as State,
-        input: input as Input,
+        state: state,
+        input: input,
         emit: action((key: string, value: any) => {
           events?.[key](value);
         }),
         $: elements,
+        // This is complicated because in the component implementation, if they don't have State defined,
+        // we don't want them to see `state` from ComponentUtils. However when actually generating the record from
+        // the ComponentRenderer, we still want to provide everything indiscriminately to avoid complication.
+        // That's why we're casting the utils here as `any`, so we don't have to create separate utils for each case.
       } as any)();
 
       // Components can return an ElementInstanceGenerator

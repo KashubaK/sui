@@ -71,7 +71,7 @@ export function applyElementDescription(record: ElementRecord) {
       const typedKey = key as keyof typeof attributes;
 
       if (typeof element[typedKey] === 'function' || typeof attributes[typedKey] === 'function') {
-        console.log('[Sui] You cannot set functions within element attributes.');
+        console.warn('[Sui] You cannot set functions within element attributes, they will be ignored.');
         continue;
       }
 

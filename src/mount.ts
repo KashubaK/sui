@@ -43,8 +43,8 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
 
     rootRecord ||= currentRecord;
 
-    currentRecord.lastState = { ...currentRecord.state };
-    currentRecord.lastInput = 'input' in render ? { ...(render.input || {}) } : {};
+    currentRecord.lastState = deepRemoveObservables({ ...currentRecord.state });
+    currentRecord.lastInput = 'input' in render ? deepRemoveObservables({ ...(render.input || {}) }) : {};
 
     const element = reconcileElement(currentRecord);
 
@@ -132,11 +132,30 @@ function mountElement(record: ElementRecord, parentElement: HTMLElement, index: 
     parentElement.appendChild(element);
   }
 
+  if (record.description.mount) {
+    // TODO: State updates inside description mount function do not cause reactivity
+    // unless called within a setTimeout. WARN DEVELOPERS: Too many mount hooks can cause performance issues.
+    setTimeout(() => record.description.mount?.(element));
+  }
+
   record.mounted = true;
 }
 
 function unmountElement(record: ElementRecord) {
   record.element?.parentElement?.removeChild(record.element);
+
+  if (record.element) {
+    const element = record.element;
+
+    if (record.description.unmount) {
+      // TODO: State updates inside description unmount function do not cause reactivity
+      // unless called within a setTimeout. WARN DEVELOPERS: Too many unmount hooks can cause performance issues.
+      setTimeout(() => record.description.mount?.(element));
+    }
+
+    record.description.unmount?.(record.element);
+  }
+
   record.mounted = false;
 }
 
@@ -153,10 +172,14 @@ function componentRequiresUpdate(record: ElementRecord, render: ComponentRendere
 
 function deepStateChanged(current: object, last: object): boolean {
   for (const key in current) {
+    if (!current.hasOwnProperty(key)) {
+      continue;
+    }
+
     const currentValue = current[key as keyof typeof current];
     const lastValue = last[key as keyof typeof current];
 
-    if (!currentValue !== lastValue) return true;
+    if (currentValue !== lastValue) return true;
 
     if (typeof currentValue === 'object') {
       const objectsChanged = deepStateChanged(currentValue, lastValue);
@@ -170,6 +193,10 @@ function deepStateChanged(current: object, last: object): boolean {
 
 function deepRead(object: any = {}) {
   for (const key in object) {
+    if (!object.hasOwnProperty(key)) {
+      continue
+    }
+
     object[key];
 
     if (typeof object[key] === 'object') {
@@ -178,8 +205,20 @@ function deepRead(object: any = {}) {
   }
 }
 
+function deepRemoveObservables(object: any = {}) {
+  for (const key in object) {
+    if (!object.hasOwnProperty(key)) continue;
+    if (typeof object[key] === 'object') {
+      object[key] = deepRemoveObservables({ ...object[key] });
+    }
+  }
+
+  return { ...object };
+}
+
 function shallowEqual(a: Record<string, unknown> = {}, b: Record<string, unknown> = {}) {
   for (const key in a) {
+    if (!a.hasOwnProperty(key)) continue;
     if (a[key] !== b[key]) {
       return false;
     }

@@ -1,4 +1,5 @@
 import {ComponentRenderer} from "../component";
+import {action} from "mobx";
 
 type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
@@ -27,17 +28,18 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
   text?: string;
   html?: string;
   when?: boolean;
+  mount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
+  unmount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
 };
 
-export type ElementRecord<State = {}, Input = {}, TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = {
+export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = {
   type: 'component' | 'element';
   name: string;
   tagName: TagName;
   description: ElementDescription<TagName>;
-  children: (ElementRenderer | ComponentRenderer<State, Input>)[];
+  children: (ElementRenderer | ComponentRenderer)[];
   childRecords: ElementRecord[];
   mounted: boolean;
-  onElementMount?: () => void;
   parent?: ElementRecord;
   element?: HTMLElement;
   listeners?: Record<string, (e: any) => unknown>;
@@ -50,7 +52,7 @@ export type ElementRecord<State = {}, Input = {}, TagName extends keyof HTMLElem
 
 export type ElementInstanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]) => ElementRenderer;
 
-export type ElementRenderer = (() => ElementRecord) & {
+export type ElementRenderer<TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = (() => ElementRecord<any, any, TagName>) & {
   parent?: ElementRecord;
   componentName: string;
   type: 'element' | 'component';
@@ -58,12 +60,16 @@ export type ElementRenderer = (() => ElementRecord) & {
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
   return (description: ElementDescription<TagName> = {}): ElementInstanceGenerator => {
-    const instanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer => {
+    if (description.mount) description.mount = action(description.mount);
+    if (description.unmount) description.unmount = action(description.unmount);
+
+    const instanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer<TagName> => {
       const generateElementRecord = () => {
-        const record: ElementRecord = {
+        const record: ElementRecord<any, any, TagName> = {
           tagName,
           name: tagName,
-          description,
+          // ugh. TS doesn't like how I'm using generics to map element tag names
+          description: description as any,
           childRecords: [],
           children: children.map(child => {
             // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
@@ -86,6 +92,6 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
       return generateElementRecord;
     }
 
-    return instanceGenerator;
+    return instanceGenerator as ElementInstanceGenerator;
   }
 }
