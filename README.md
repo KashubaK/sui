@@ -239,6 +239,7 @@ export const App = component(function App({ state, $ }) {
   const container = $.div();
   
   const counter = Counter({
+    input: { defaultCount: 10 },
     events: {
       count: newCount => state.count = newCount,
     }
@@ -254,11 +255,11 @@ export const App = component(function App({ state, $ }) {
   );
 }, appDefaultState);
 
-const counterDefaultState = { count: 0 };
+const counterDefaultState = (input) => ({ count: input.defaultCount });
 
 export const Counter = component(function Counter({ input, emit, $ }) {
   const counter = $.button({
-    text: 'Increment',
+    text: `Increment (default count is ${input.defaultCount})`,
     events: {
       click: () => {
         state.count++;
