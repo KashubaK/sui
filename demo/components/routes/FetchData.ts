@@ -1,5 +1,5 @@
-import {component} from "../../src";
-import {IRouteInput} from "../../src/components/Router";
+import {component} from "../../../src";
+import {IRouteInput} from "../../../src/components/Router";
 import {action, observable} from "mobx";
 
 type Post = {

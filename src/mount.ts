@@ -1,17 +1,26 @@
 // This is getting a bit out of hand...
 
 import {ElementRecord, ElementRenderer} from "./elements/element";
-import {ComponentRenderer} from "./component";
+import {ComponentRecordGenerator, ComponentRenderer} from "./component";
 import {reconcileElement} from "./render/render";
 import {autorun, IReactionPublic} from "mobx";
 
 let rootRecord: ElementRecord | null = null;
 
-function isComponentRenderer(render: ComponentRenderer | ElementRenderer): render is ComponentRenderer {
+function isComponentRenderer(render: ComponentRecordGenerator | ElementRenderer): render is ComponentRecordGenerator {
   return render.type === 'component';
 }
 
-export function mount(render: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
+export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
+  // ComponentRenderer does not contain any properties
+  let render: ComponentRecordGenerator | ElementRenderer;
+
+  if (!('type' in fn)) {
+    render = fn() as ComponentRecordGenerator;
+  } else {
+    render = fn;
+  }
+
   const perform = (lastReaction?: IReactionPublic) => {
     const start = performance.now();
     let currentRecord = render.parent ? render.parent.childRecords[childIndex] : rootRecord;
@@ -25,15 +34,15 @@ export function mount(render: ComponentRenderer | ElementRenderer, parentElement
     let record = render();
 
     if (currentRecord && render.parent) {
-      if (!recordIsCompatible(currentRecord, render)) {
+      if (recordIsCompatible(currentRecord, render)) {
+        updateRecord(currentRecord, record);
+      } else {
         const removedRecord = render.parent.childRecords.splice(childIndex, 1, record);
         if (removedRecord?.[0]) {
           unmountElement(removedRecord[0]);
         }
 
         currentRecord = record;
-      } else {
-        updateRecord(currentRecord, record);
       }
     } else {
       currentRecord = record;
@@ -98,7 +107,7 @@ function updateRecord(record: ElementRecord, newRecord: ElementRecord) {
   record.description = newRecord.description;
 }
 
-function recordIsCompatible(record: ElementRecord, render: ElementRenderer | ComponentRenderer) {
+function recordIsCompatible(record: ElementRecord, render: ElementRenderer | ComponentRecordGenerator) {
   return record.name === render.componentName
 }
 
@@ -159,7 +168,7 @@ function unmountElement(record: ElementRecord) {
   record.mounted = false;
 }
 
-function componentRequiresUpdate(record: ElementRecord, render: ComponentRenderer) {
+function componentRequiresUpdate(record: ElementRecord, render: ComponentRecordGenerator) {
   if (record.name !== render.componentName) return true;
   if (!shallowEqual(record.state, record.lastState)) return true;
   if (!shallowEqual(record.input, record.lastInput)) return true;

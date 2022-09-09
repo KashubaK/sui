@@ -1,10 +1,11 @@
 import {component} from "../../src/component";
 import Router from "../../src/components/Router";
-import Home from "../routes/Home";
-import Login from "../routes/Login";
-import User from "../routes/User";
-import FetchData from "../routes/FetchData";
-import Stress from "../routes/Stress";
+import Home from "./routes/Home";
+import Login from "./routes/Login";
+import User from "./routes/User";
+import FetchData from "./routes/FetchData";
+import Stress from "./routes/Stress";
+import Children from "./routes/Children";
 
 const Fallback = component(function Fallback({ $ }) {
   return $.h1({ text: 'No route matched.' });
@@ -18,6 +19,7 @@ export default component(function App({ $ }) {
         '/login': Login,
         '/data': FetchData,
         '/stress': Stress,
+        '/children': Children,
         '/user/:id': User,
       },
       fallback: Fallback

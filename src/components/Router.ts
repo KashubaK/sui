@@ -1,4 +1,4 @@
-import {component, ComponentInstanceGenerator, ComponentRenderer} from "../component";
+import {component, ComponentInstanceGenerator, ComponentRecordGenerator} from "../component";
 import {action} from "mobx";
 
 export type IRouteInput = {
@@ -7,7 +7,7 @@ export type IRouteInput = {
 }
 
 type Input = {
-  routes: Record<string, ComponentInstanceGenerator<IRouteInput>>;
+  routes: Record<string, ComponentInstanceGenerator<IRouteInput, any, any>>;
   fallback: ComponentInstanceGenerator;
 };
 
@@ -34,7 +34,7 @@ export default component<Input, State>(function Router({ state, input, $ }) {
   );
 
   function getMatchedRoute() {
-    let matchedRoute: ComponentRenderer<IRouteInput> | null = null;
+    let matchedRoute: ComponentRecordGenerator<IRouteInput> | null = null;
 
     Object.keys(input.routes).reverse().forEach(path => {
       if (matchedRoute) return;

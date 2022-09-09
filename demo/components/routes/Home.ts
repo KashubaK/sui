@@ -1,6 +1,6 @@
-import {component} from "../../src";
-import Link from "../../src/components/Link";
-import {IRouteInput} from "../../src/components/Router";
+import {component} from "../../../src";
+import Link from "../../../src/components/Link";
+import {IRouteInput} from "../../../src/components/Router";
 import {action} from "mobx";
 
 type HomeState = {
@@ -15,6 +15,7 @@ export default component<IRouteInput, HomeState>(function Home({ $, state }) {
   const userLink = Link({ input: { to: '/user/12345', text: 'User 12345' } })
   const dataLink = Link({ input: { to: '/data', text: 'Data' } })
   const stressLink = Link({ input: { to: '/stress', text: 'Stress test' } })
+  const childrenLink = Link({ input: { to: '/children', text: 'Children test' } })
 
   const lineBreak = $.br({
     mount: action((element) => {
@@ -30,6 +31,8 @@ export default component<IRouteInput, HomeState>(function Home({ $, state }) {
     lineBreak,
     dataLink,
     lineBreak,
-    stressLink
+    stressLink,
+    lineBreak,
+    childrenLink
   );
 }, { lineBreakElementWidth: null });

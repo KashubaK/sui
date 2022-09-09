@@ -1,4 +1,4 @@
-import {ComponentRenderer} from "../component";
+import {ComponentRecordGenerator} from "../component";
 import {action} from "mobx";
 
 type IfEquals<X, Y, A = X, B = never> =
@@ -37,7 +37,7 @@ export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElem
   name: string;
   tagName: TagName;
   description: ElementDescription<TagName>;
-  children: (ElementRenderer | ComponentRenderer)[];
+  children: (ElementRenderer | ComponentRecordGenerator)[];
   childRecords: ElementRecord[];
   mounted: boolean;
   parent?: ElementRecord;
@@ -50,7 +50,9 @@ export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElem
   index?: number;
 }
 
-export type ElementInstanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]) => ElementRenderer;
+export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer;
+
+export type ElementInstanceGenerator = (...children: Child[]) => ElementRenderer;
 
 export type ElementRenderer<TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = (() => ElementRecord<any, any, TagName>) & {
   parent?: ElementRecord;
@@ -63,7 +65,7 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
     if (description.mount) description.mount = action(description.mount);
     if (description.unmount) description.unmount = action(description.unmount);
 
-    const instanceGenerator = (...children: (ComponentRenderer<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer<TagName> => {
+    const instanceGenerator = (...children: (ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer<TagName> => {
       const generateElementRecord = () => {
         const record: ElementRecord<any, any, TagName> = {
           tagName,

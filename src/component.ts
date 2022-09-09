@@ -1,5 +1,11 @@
 import {action, observable} from "mobx";
-import {createElementGenerator, ElementInstanceGenerator, ElementRecord, ElementRenderer} from "./elements/element";
+import {
+  Child,
+  createElementGenerator,
+  ElementInstanceGenerator,
+  ElementRecord,
+  ElementRenderer
+} from "./elements/element";
 import {elements} from "./elements/elements";
 
 export type ComponentEvents = Record<string, (...args: any[]) => unknown>
@@ -7,6 +13,7 @@ export type ComponentEvents = Record<string, (...args: any[]) => unknown>
 export type ComponentUtils<Input, State, Events extends ComponentEvents | undefined> = {
   input: Input;
   state: State;
+  children: Child[];
   $: {
     [key in keyof HTMLElementTagNameMap]: ReturnType<typeof createElementGenerator<key>>
   };
@@ -45,7 +52,10 @@ export type ComponentInstanceGenerator<Input = undefined, State = undefined, Eve
       ? (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<Input, State>
       : (args: ComponentInstanceGeneratorArgs<Input, Events>) => ComponentRenderer<Input, State>
 
-export type ComponentRenderer<Input = undefined, State = undefined> = ((state?: State) => ElementRecord<Input, State>) & {
+export type ComponentRenderer<Input = undefined, State = undefined> =
+  (...children: Child[]) => ComponentRecordGenerator<Input, State>;
+
+export type ComponentRecordGenerator<Input = undefined, State = undefined> = ((state?: State) => ElementRecord<Input, State>) & {
   type: 'component';
   input: Input;
   parent?: ElementRecord;
@@ -88,36 +98,41 @@ export function component<
 
     const initialState = observable(defaultState || {}) as State;
 
-    const renderer: ComponentRenderer<Input, State> = (state = initialState) => {
-      let record = define({
-        state: state,
-        input: input,
-        emit: action((key: string, value: any) => {
-          events?.[key](value);
-        }),
-        $: elements,
-        // This is complicated because in the component implementation, if they don't have State defined,
-        // we don't want them to see `state` from ComponentUtils. However when actually generating the record from
-        // the ComponentRenderer, we still want to provide everything indiscriminately to avoid complication.
-        // That's why we're casting the utils here as `any`, so we don't have to create separate utils for each case.
-      } as any)();
+    const renderer = (...children: Child[]) => {
+      const generateRecord: ComponentRecordGenerator<Input, State> = (state = initialState) => {
+        let record = define({
+          state: state,
+          input: input,
+          emit: action((key: string, value: any) => {
+            events?.[key](value);
+          }),
+          children,
+          $: elements,
+          // This is complicated because in the component implementation, if they don't have State defined,
+          // we don't want them to see `state` from ComponentUtils. However when actually generating the record from
+          // the ComponentRenderer, we still want to provide everything indiscriminately to avoid complication.
+          // That's why we're casting the utils here as `any`, so we don't have to create separate utils for each case.
+        } as any)();
 
-      // Components can return an ElementInstanceGenerator
-      if (typeof record === 'function') record = record();
+        // Components can return an ElementInstanceGenerator
+        if (typeof record === 'function') record = record();
 
-      record.name = componentName;
-      record.description.when = when;
-      record.state = state;
-      record.input = input;
-      record.type = 'component';
+        record.name = componentName;
+        record.description.when = when;
+        record.state = state;
+        record.input = input;
+        record.type = 'component';
 
-      return record;
+        return record;
+      }
+
+      generateRecord.type = 'component';
+      generateRecord.input = input as Input;
+      generateRecord.when = when;
+      generateRecord.componentName = componentName;
+
+      return generateRecord;
     }
-
-    renderer.type = 'component';
-    renderer.input = input as Input;
-    renderer.when = when;
-    renderer.componentName = componentName;
 
     return renderer;
   }
