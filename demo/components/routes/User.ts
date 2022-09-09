@@ -1,6 +1,6 @@
 import {component} from "../../../src";
-import {IRouteInput} from "../../../src/components/Router";
-import Link from "../../../src/components/Link";
+import {IRouteInput} from "../Router";
+import Link from "../Link";
 
 export default component<IRouteInput>(function User({ input, $ }) {
   const container = $.div();

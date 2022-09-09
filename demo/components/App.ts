@@ -1,5 +1,5 @@
 import {component} from "../../src/component";
-import Router from "../../src/components/Router";
+import Router from "./Router";
 import Home from "./routes/Home";
 import Login from "./routes/Login";
 import User from "./routes/User";

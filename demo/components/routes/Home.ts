@@ -1,6 +1,6 @@
 import {component} from "../../../src";
-import Link from "../../../src/components/Link";
-import {IRouteInput} from "../../../src/components/Router";
+import Link from "../Link";
+import {IRouteInput} from "../Router";
 import {action} from "mobx";
 
 type HomeState = {

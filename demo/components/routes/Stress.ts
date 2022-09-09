@@ -1,5 +1,5 @@
 import {component} from "../../../src";
-import {IRouteInput} from "../../../src/components/Router";
+import {IRouteInput} from "../Router";
 import {times} from "lodash-es";
 
 const ListItem = component<{ text: string }, { count: number }>(function ListItem({ state, input, $ }) {

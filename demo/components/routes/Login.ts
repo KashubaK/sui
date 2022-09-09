@@ -1,5 +1,5 @@
 import {component, ComponentDefinition} from "../../../src";
-import {IRouteInput} from "../../../src/components/Router";
+import {IRouteInput} from "../Router";
 
 const Login: ComponentDefinition<IRouteInput, { count: number }> = ({ state, $ }) => {
   const container = $.div();
