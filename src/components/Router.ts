@@ -1,4 +1,4 @@
-import {component, ComponentInstanceGenerator, ComponentRecordGenerator, ComponentRenderer} from "../component";
+import {component, ComponentInstanceGenerator, ComponentRenderer} from "../component";
 import {action} from "mobx";
 
 export type IRouteInput = {
