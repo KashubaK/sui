@@ -35,15 +35,13 @@ export type ComponentDefinition<Input = undefined, State = undefined, Events ext
   (utils: ComponentUtils<Input, State, Events>) => ElementRenderer | ElementInstanceGenerator;
 
 export type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents | undefined> =
-  { when?: boolean } & (
-    Input extends undefined
-      ? Events extends undefined
-        ? {}
-        : { events?: Events }
-      : Events extends ComponentEvents
-        ? { input: Input, events?: Events }
-        : { input: Input }
-  )
+  Input extends undefined
+    ? Events extends undefined
+      ? {}
+      : { events?: Events }
+    : Events extends ComponentEvents
+      ? { input: Input, events?: Events }
+      : { input: Input }
 
 export type ComponentInstanceGenerator<Input = undefined, State = undefined, Events extends ComponentEvents | undefined = undefined> =
   Input extends undefined
@@ -59,7 +57,6 @@ export type ComponentRecordGenerator<Input = undefined, State = undefined> = ((s
   type: 'component';
   input: Input;
   parent?: ElementRecord;
-  when?: boolean;
   componentName: string;
   __lastRenderTime?: number;
 };
@@ -89,8 +86,6 @@ export function component<
   }
 
   const generateInstance = (args: ComponentInstanceGeneratorArgs<Input, Events> = {} as any) => {
-    const { when = true } = args;
-
     const input = 'input' in args ? args.input : undefined;
     const events = 'events' in args ? args.events : undefined;
 
@@ -106,7 +101,7 @@ export function component<
           emit: action((key: string, value: any) => {
             events?.[key](value);
           }),
-          children,
+          children: children.filter(Boolean),
           $: elements,
           // This is complicated because in the component implementation, if they don't have State defined,
           // we don't want them to see `state` from ComponentUtils. However when actually generating the record from
@@ -118,7 +113,6 @@ export function component<
         if (typeof record === 'function') record = record();
 
         record.name = componentName;
-        record.description.when = when;
         record.state = state;
         record.input = input;
         record.type = 'component';
@@ -128,7 +122,6 @@ export function component<
 
       generateRecord.type = 'component';
       generateRecord.input = input as Input;
-      generateRecord.when = when;
       generateRecord.componentName = componentName;
 
       return generateRecord;

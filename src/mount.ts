@@ -57,12 +57,8 @@ export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HT
 
     const element = reconcileElement(currentRecord);
 
-    if (currentRecord.description.when !== false) {
-      if (!currentRecord.mounted) {
-        mountElement(currentRecord, parentElement, childIndex);
-      }
-    } else if (currentRecord.mounted) {
-      unmountElement(currentRecord);
+    if (!currentRecord.mounted) {
+      mountElement(currentRecord, parentElement, childIndex);
     }
 
     currentRecord.children = record.children;
@@ -172,7 +168,6 @@ function componentRequiresUpdate(record: ElementRecord, render: ComponentRecordG
   if (record.name !== render.componentName) return true;
   if (!shallowEqual(record.state, record.lastState)) return true;
   if (!shallowEqual(record.input, record.lastInput)) return true;
-  if ((render.when ?? true) !== record.mounted) return true;
   if (deepStateChanged(record.state || {}, record.lastState || {})) return true;
   if (deepStateChanged(record.input || {}, record.lastInput || {})) return true;
 

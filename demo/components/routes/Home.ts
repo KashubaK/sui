@@ -16,6 +16,7 @@ export default component<IRouteInput, HomeState>(function Home({ $, state }) {
   const dataLink = Link({ input: { to: '/data', text: 'Data' } })
   const stressLink = Link({ input: { to: '/stress', text: 'Stress test' } })
   const childrenLink = Link({ input: { to: '/children', text: 'Children test' } })
+  const conditionalLink = Link({ input: { to: '/conditional', text: 'Conditionals' } })
 
   const lineBreak = $.br({
     mount: action((element) => {
@@ -33,6 +34,8 @@ export default component<IRouteInput, HomeState>(function Home({ $, state }) {
     lineBreak,
     stressLink,
     lineBreak,
-    childrenLink
+    childrenLink,
+    lineBreak,
+    conditionalLink
   );
 }, { lineBreakElementWidth: null });

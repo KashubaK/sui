@@ -27,7 +27,6 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
   attributes?: Partial<Pick<HTMLElementTagNameMap[TagName], WritableKeys<HTMLElementTagNameMap[TagName]>>>;
   text?: string;
   html?: string;
-  when?: boolean;
   mount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
   unmount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
 };
@@ -50,7 +49,7 @@ export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElem
   index?: number;
 }
 
-export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer;
+export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer | false;
 
 export type ElementInstanceGenerator = (...children: Child[]) => ElementRenderer;
 
@@ -65,7 +64,7 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
     if (description.mount) description.mount = action(description.mount);
     if (description.unmount) description.unmount = action(description.unmount);
 
-    const instanceGenerator = (...children: (ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer)[]): ElementRenderer<TagName> => {
+    const instanceGenerator = (...children: Child[]): ElementRenderer<TagName> => {
       const generateElementRecord = () => {
         const record: ElementRecord<any, any, TagName> = {
           tagName,
@@ -74,13 +73,15 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
           description: description as any,
           childRecords: [],
           children: children.map(child => {
+            if (!child) return;
+
             // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
             if ('type' in child) {
               return child;
             }
 
             return child();
-          }),
+          }).filter(Boolean) as ElementRecord['children'],
           mounted: false,
           type: 'element',
         };
