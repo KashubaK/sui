@@ -7,7 +7,7 @@
     "name": "Kyle Kashuba",
     "url": "https://github.com/KashubaK"
   },
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "dist/sui.js",
   "types": "dist/index.d.ts",
   "type": "module",
