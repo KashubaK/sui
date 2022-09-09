@@ -100,7 +100,7 @@ const Child = component(function Child({ $ })  {
 
 ## Conditional rendering
 
-Add `when: boolean` to the element record:
+Apply a similar strategy as React by using `&&`:
 
 ```js
 import { component } from '@kashuab/sui';
@@ -120,20 +120,17 @@ export const Counter = component(function Counter({ state, $ }) {
   const count = $.span({ text: `Count: ${state.count}` });
   const countedToTen = $.span({
     text: 'You counted to ten!',
-    when: state.count === 10,
   });
   
   return container(
     increment,
     count,
-    countedToTen
+    state.count === 10 && countedToTen
   );
 }, defaultState);
 ```
 
 ### Conditional rendering child components
-
-Pass `when: boolean` to the component when you call it:
 
 ```js
 import { component } from '@kashuab/sui';
@@ -152,14 +149,12 @@ export const Counter = component(function Counter({ state, $ }) {
 
   const count = $.span({ text: `Count: ${state.count}` });
   
-  const countedToTen = CountedToTen({
-    when: state.count === 10,
-  })
+  const countedToTen = CountedToTen();
 
   return container(
     increment,
     count,
-    countedToTen
+    state.count === 10 && countedToTen
   );
 }, defaultState);
 
