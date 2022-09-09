@@ -168,6 +168,32 @@ const CountedToTen = component(function CountedToTen({ $ }) {
 });
 ```
 
+## Provide children to nested components
+
+```js
+import { component } from '@kashuab/sui';
+
+export default component(function Children({ $ }) {
+  const container = $.div();
+  const parent = Parent();
+  const child = Child();
+
+  return container(
+    parent(child)
+  );
+});
+
+const Parent = component(function Parent({ $, children }) {
+  const container = $.div({ text: 'imma parent' });
+
+  return container(...children);
+});
+
+const Child = component(function Child({ $ }) {
+  return $.span({ text: 'I am a child!' });
+});
+```
+
 ## Provide child component `input`
 
 ```js
@@ -284,8 +310,6 @@ export const App = component(function App({ state, $ }) {
 ## TODO: TypeScript documentation
 
 For now, see [the demo source](demo).
-
-## TODO: Provide children to nested components
 
 
 
