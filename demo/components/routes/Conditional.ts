@@ -15,7 +15,7 @@ export default component<undefined, { count: number }>(function Conditional({ $,
     state.count >= 1 && a,
     state.count >= 2 && b,
     state.count >= 3 && c,
-    count,
+    state.count && count,
     decrement
   );
 }, { count: 0 });

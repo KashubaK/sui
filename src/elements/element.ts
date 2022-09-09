@@ -49,7 +49,9 @@ export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElem
   index?: number;
 }
 
-export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer | false;
+type Falsy = undefined | null | false | 0 | "";
+
+export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer | Falsy;
 
 export type ElementInstanceGenerator = (...children: Child[]) => ElementRenderer;
 

@@ -76,7 +76,10 @@ export function component<
   Input extends Record<string, unknown> | undefined = undefined,
   State extends Record<string, unknown> | undefined = undefined,
   Events extends ComponentEvents | undefined = undefined,
->(define: ComponentDefinition<Input, State, Events>, ...args: ComponentAdditionalFnArgs<Input, State, Events>): ComponentInstanceGenerator<Input, State, Events> {
+>(
+  define: ComponentDefinition<Input, State, Events>,
+  ...args: ComponentAdditionalFnArgs<Input, State, Events>
+): ComponentInstanceGenerator<Input, State, Events> {
   // TODO: Is there a way to accomplish this without all the type casting?
   let [defaultState] = args;
 
