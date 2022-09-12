@@ -33,7 +33,9 @@ import { component, mount } from '@kashuab/sui';
 // You need to use named functions!
 // This may change in the future to reduce repetition.
 export const Heading = component(function Heading({ $ }) {
-  return $.h1({ text: 'Hello world!' });
+  const heading = $.h1();
+  
+  return heading('Hello world!');
 });
 
 mount(Heading(), document.body);
@@ -53,19 +55,17 @@ const defaultState = { count: 0 };
 
 export const Counter = component(function Counter({ state, $ }) {
   const increment = $.button({
-    text: 'Increment',
     events: {
       click: () => state.count++,
     }
   });
   
-  const count = $.span({ text: `Count: ${state.count}` });
-  
+  const count = $.span();
   const container = $.div();
   
   return container(
-    increment,
-    count
+    increment('Increment'),
+    count(`Count: ${state.count}`)
   );
 }, defaultState);
 ```
@@ -79,17 +79,19 @@ import { component } from '@kashuab/sui';
 
 export const Parent = component(function Parent({ $ }) {
   const container = $.div();
-  const heading = $.h1({ text: 'We have an important, never-before-seen message for you.' });
+  const heading = $.h1();
   const child = Child();
   
   return container(
-    heading,
+    heading('We have an important, never-before-seen message for you.'),
     child
   );
 })
 
 const Child = component(function Child({ $ })  {
-  return $.span({ text: 'Hello world!' });
+  const text = $.span();
+
+  return text('Hello world!');
 });
 ```
 
@@ -106,21 +108,17 @@ export const Counter = component(function Counter({ state, $ }) {
   const container = $.div();
   
   const increment = $.button({
-    text: 'Increment',
     events: {
       click: () => state.count++,
     }
   });
   
-  const count = $.span({ text: `Count: ${state.count}` });
-  const countedToTen = $.span({
-    text: 'You counted to ten!',
-  });
+  const text = $.span();
   
   return container(
-    increment,
-    count,
-    state.count === 10 && countedToTen
+    increment('Increment'),
+    text(`Count: ${state.count}`),
+    state.count === 10 && text('You counted to ten!')
   );
 }, defaultState);
 ```
@@ -136,25 +134,25 @@ export const Counter = component(function Counter({ state, $ }) {
   const container = $.div();
   
   const increment = $.button({
-    text: 'Increment',
     events: {
       click: () => state.count++,
     }
   });
 
-  const count = $.span({ text: `Count: ${state.count}` });
-  
+  const text = $.span();
   const countedToTen = CountedToTen();
 
   return container(
-    increment,
-    count,
+    increment('Increment'),
+    text(`Count: ${state.count}`),
     state.count === 10 && countedToTen
   );
 }, defaultState);
 
 const CountedToTen = component(function CountedToTen({ $ }) {
-  return $.span({ text: 'You counted to ten!' });
+  const text = $.span();
+
+  return text('You counted to ten!');
 });
 ```
 
@@ -169,18 +167,20 @@ export default component(function Children({ $ }) {
   const child = Child();
 
   return container(
-    parent(child)
+    parent(child("Child of child!"))
   );
 });
 
 const Parent = component(function Parent({ $, children }) {
-  const container = $.div({ text: 'imma parent' });
+  const container = $.div();
 
-  return container(...children);
+  return container('imma parent', ...children);
 });
 
-const Child = component(function Child({ $ }) {
-  return $.span({ text: 'I am a child!' });
+const Child = component(function Child({ $, children }) {
+  const text = $.span();
+  
+  return text('I am a child!', ...children);
 });
 ```
 
@@ -195,7 +195,6 @@ export const App = component(function App({ state, $ }) {
   const container = $.div();
 
   const counter = $.button({
-    text: 'Increment',
     events: {
       click: () => state.count++
     }
@@ -205,16 +204,16 @@ export const App = component(function App({ state, $ }) {
   
   return (
     container(
-      counter,
+      counter('Increment'),
       display,
     )
   );
 }, defaultState);
 
 export const CountDisplay = component(function CountDisplay({ input, $ }) {
-  const display = $.span({ text: `Current count: ${input.count}` });
+  const text = $.span();
   
-  return display;
+  return display(`Current count: ${input.count}`);
 })
 ```
 
@@ -240,12 +239,12 @@ export const App = component(function App({ state, $ }) {
     }
   })
   
-  const display = $.span({ text: `Current count: ${state.count}` });
+  const text = $.span();
   
   return (
     container(
       counter,
-      display,
+      text(`Current count: ${state.count}`),
     )
   );
 }, appDefaultState);
@@ -254,16 +253,17 @@ const counterDefaultState = (input) => ({ count: input.defaultCount });
 
 export const Counter = component(function Counter({ input, emit, $ }) {
   const counter = $.button({
-    text: `Increment (default count is ${input.defaultCount})`,
     events: {
       click: () => {
         state.count++;
+        
+        // Use 'emit' to propagate information to a propspective parent!
         emit('count', state.count);
       }
     }
   });
   
-  return counter;
+  return counter(`Increment (default count is ${input.defaultCount})`);
 }, counterDefaultState)
 ```
 
@@ -277,19 +277,23 @@ export const App = component(function App({ state, $ }) {
   const container = $.div();
 
   const counter = $.button({
-    text: 'Increment',
     events: {
       click: () => state.count++
     }
   });
   
   // You don't have to use lodash!
-  const listItems = times(state.count, (i) => $.li({ text: `List item ${i}` }));
+  const listItems = times(state.count, (i) => {
+    const li = $.li();
+    
+    return li(`List item ${i}`);
+  });
+  
   const list = $.ul();
 
   return (
     container(
-      counter,
+      counter('Increment'),
       list(...listItems),
     )
   );
