@@ -2,20 +2,17 @@ import {component} from "../../../src";
 
 export default component<undefined, { count: number }>(function Conditional({ $, state }) {
   const container = $.div();
-  const count = $.span({ text: `Count: ${state.count}` });
-  const a = $.span({ text: 'a' });
-  const b = $.span({ text: 'b' });
-  const c = $.span({ text: 'c' });
+  const span = $.span();
 
-  const increment = $.button({ text: 'Increment', events: { click: () => state.count++ } });
-  const decrement = $.button({ text: 'Decrement', events: { click: () => state.count-- } });
+  const increment = $.button({ events: { click: () => state.count++ } });
+  const decrement = $.button({ events: { click: () => state.count-- } });
 
   return container(
-    increment,
-    state.count >= 1 && a,
-    state.count >= 2 && b,
-    state.count >= 3 && c,
-    state.count && count,
-    decrement
+    increment("Increment"),
+    state.count >= 1 && span('a'),
+    state.count >= 2 && span('b'),
+    state.count >= 3 && span('c'),
+    state.count && span(`Count: ${state.count}`),
+    decrement("Decrement")
   );
 }, { count: 0 });

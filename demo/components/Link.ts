@@ -3,12 +3,10 @@ import {navigate} from "./Router";
 
 type Input = {
   to: string;
-  text: string;
 }
 
-export default component<Input>(function Link({ input, $ }) {
+export default component<Input>(function Link({ input, children, $ }) {
   const anchor = $.a({
-    text: input.text,
     attributes: { href: input.to },
     events: {
       click(e) {
@@ -18,5 +16,5 @@ export default component<Input>(function Link({ input, $ }) {
     }
   });
 
-  return anchor();
+  return anchor(...children);
 });

@@ -10,11 +10,13 @@ export default component(function Children({ $ }) {
 });
 
 const Parent = component(function Parent({ $, children }) {
-  const container = $.div({ text: 'imma parent' });
+  const container = $.div();
 
-  return container(...children);
+  return container('imma parent', ...children);
 });
 
 const Child = component(function Child({ $ }) {
-  return $.span({ text: 'I am a child!' });
+  const span = $.span();
+
+  return span('I am a child!');
 });

@@ -25,22 +25,22 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
   style?: Partial<Pick<CSSStyleDeclaration, WritableKeys<CSSStyleDeclaration> & NonFunctionKeys<CSSStyleDeclaration>>>;
   // TODO: NonFunctionKeys here is making this Record<never, unknown>
   attributes?: Partial<Pick<HTMLElementTagNameMap[TagName], WritableKeys<HTMLElementTagNameMap[TagName]>>>;
-  text?: string;
   html?: string;
   mount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
   unmount?: (element: HTMLElementTagNameMap[TagName]) => unknown;
 };
 
 export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = {
-  type: 'component' | 'element';
+  type: 'component' | 'element' | 'text';
   name: string;
   tagName: TagName;
   description: ElementDescription<TagName>;
+  textContent?: string;
   children: (ElementRenderer | ComponentRecordGenerator)[];
   childRecords: ElementRecord[];
   mounted: boolean;
   parent?: ElementRecord;
-  element?: HTMLElement;
+  element?: Node;
   listeners?: Record<string, (e: any) => unknown>;
   state?: State;
   lastState?: State;
@@ -51,14 +51,14 @@ export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElem
 
 type Falsy = undefined | null | false | 0 | "";
 
-export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer | Falsy;
+export type Child = ComponentRecordGenerator<any, any> | ElementInstanceGenerator | ElementRenderer | string | Falsy;
 
 export type ElementInstanceGenerator = (...children: Child[]) => ElementRenderer;
 
 export type ElementRenderer<TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = (() => ElementRecord<any, any, TagName>) & {
   parent?: ElementRecord;
   componentName: string;
-  type: 'element' | 'component';
+  type: 'element' | 'component' | 'text';
 };
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
@@ -76,6 +76,10 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
           childRecords: [],
           children: children.map(child => {
             if (!child) return;
+
+            if (typeof child === 'string') {
+              return createTextRenderer(child);
+            }
 
             // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
             if ('type' in child) {
@@ -99,4 +103,26 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
 
     return instanceGenerator as ElementInstanceGenerator;
   }
+}
+
+function createTextRenderer(text: string): ElementRenderer<'span'> {
+  const generateElementRecord = () => {
+    const record: ElementRecord<undefined, undefined, 'span'> = {
+      tagName: 'span',
+      name: 'span',
+      description: {},
+      textContent: text,
+      childRecords: [],
+      children: [],
+      mounted: false,
+      type: 'text',
+    }
+
+    return record;
+  }
+
+  generateElementRecord.type = 'text' as const;
+  generateElementRecord.componentName = 'text';
+
+  return generateElementRecord;
 }

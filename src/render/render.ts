@@ -1,9 +1,11 @@
 import {ElementRecord} from "../elements/element";
 import {action} from "mobx";
 
-export function reconcileElement(record: ElementRecord): HTMLElement {
+export function reconcileElement(record: ElementRecord): Node {
   if (!record.element) {
-    record.element = document.createElement(record.tagName);
+    record.element = record.type === 'text' ?
+      document.createTextNode(record.textContent || '') :
+      document.createElement(record.tagName);
   }
 
   applyElementDescription(record);
@@ -17,15 +19,7 @@ export function applyElementDescription(record: ElementRecord) {
     throw new Error('Cannot apply description from record without an element');
   }
 
-  if (description.text) {
-    if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
-      if (element.firstChild.textContent != description.text) {
-        element.firstChild.textContent = description.text;
-      }
-    } else {
-      element.prepend(description.text);
-    }
-  }
+  if (!(element instanceof HTMLElement)) return;
 
   if (description.html) {
     element.innerHTML = description.html;

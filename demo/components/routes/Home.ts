@@ -9,33 +9,29 @@ type HomeState = {
 
 export default component<IRouteInput, HomeState>(function Home({ $, state }) {
   const container = $.div({ class: 'Home' });
-  const heading = $.h1({ text: 'Home' });
+  const heading = $.h1();
 
-  const loginLink = Link({ input: { to: '/login', text: 'Login' } })
-  const userLink = Link({ input: { to: '/user/12345', text: 'User 12345' } })
-  const dataLink = Link({ input: { to: '/data', text: 'Data' } })
-  const stressLink = Link({ input: { to: '/stress', text: 'Stress test' } })
-  const childrenLink = Link({ input: { to: '/children', text: 'Children test' } })
-  const conditionalLink = Link({ input: { to: '/conditional', text: 'Conditionals' } })
+  const loginLink = Link({ input: { to: '/login' } })
+  const userLink = Link({ input: { to: '/user/12345' } })
+  const dataLink = Link({ input: { to: '/data' } })
+  const stressLink = Link({ input: { to: '/stress' } })
+  const childrenLink = Link({ input: { to: '/children' } })
+  const conditionalLink = Link({ input: { to: '/conditional' } })
 
-  const lineBreak = $.br({
-    mount: action((element) => {
-      state.lineBreakElementWidth = element.getBoundingClientRect().width;
-    })
-  });
+  const lineBreak = $.br();
 
   return container(
-    heading,
-    loginLink,
+    heading('Home'),
+    loginLink('Login'),
     lineBreak,
-    userLink,
+    userLink('User 12345'),
     lineBreak,
-    dataLink,
+    dataLink('Data fetching'),
     lineBreak,
-    stressLink,
+    stressLink('Stress test'),
     lineBreak,
-    childrenLink,
+    childrenLink('Children example'),
     lineBreak,
-    conditionalLink
+    conditionalLink('Conditionals')
   );
 }, { lineBreakElementWidth: null });

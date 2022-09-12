@@ -48,7 +48,11 @@ export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HT
       currentRecord = record;
     }
 
-    if (render.parent) render.parent.childRecords[childIndex] = currentRecord;
+    if (render.parent) {
+      currentRecord.parent = render.parent;
+      currentRecord.index = childIndex;
+      render.parent.childRecords[childIndex] = currentRecord;
+    }
 
     rootRecord ||= currentRecord;
 
@@ -61,12 +65,14 @@ export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HT
       mountElement(currentRecord, parentElement, childIndex);
     }
 
-    currentRecord.children = record.children;
-    currentRecord.children.forEach((child, index) => {
-      child.parent = currentRecord!;
+    if (element instanceof HTMLElement) {
+      currentRecord.children = record.children;
+      currentRecord.children.forEach((child, index) => {
+        child.parent = currentRecord!;
 
-      mount(child, element, index)
-    });
+        mount(child, element, index)
+      });
+    }
 
     if (currentRecord.childRecords.length !== currentRecord.children.length) {
       cleanChildren(currentRecord);
@@ -132,12 +138,12 @@ function mountElement(record: ElementRecord, parentElement: HTMLElement, index: 
   }
 
   if (parentElement.children[index]) {
-    parentElement.children[index].insertAdjacentElement('beforebegin', element);
+    parentElement.insertBefore(element, parentElement.children[index]);
   } else {
     parentElement.appendChild(element);
   }
 
-  if (record.description.mount) {
+  if (record.description.mount && element instanceof HTMLElement) {
     // TODO: State updates inside description mount function do not cause reactivity
     // unless called within a setTimeout. WARN DEVELOPERS: Too many mount hooks can cause performance issues.
     setTimeout(() => record.description.mount?.(element));
@@ -152,13 +158,11 @@ function unmountElement(record: ElementRecord) {
   if (record.element) {
     const element = record.element;
 
-    if (record.description.unmount) {
+    if (record.description.unmount && element instanceof HTMLElement) {
       // TODO: State updates inside description unmount function do not cause reactivity
       // unless called within a setTimeout. WARN DEVELOPERS: Too many unmount hooks can cause performance issues.
-      setTimeout(() => record.description.mount?.(element));
+      setTimeout(() => record.description.unmount?.(element));
     }
-
-    record.description.unmount?.(record.element);
   }
 
   record.mounted = false;
