@@ -15,7 +15,9 @@ export type ComponentUtils<Input, State, Events extends ComponentEvents | undefi
   state: State;
   children: Child[];
   $: {
-    [key in keyof HTMLElementTagNameMap]: ReturnType<typeof createElementGenerator<key>>
+    [key in keyof HTMLElementTagNameMap]: ReturnType<typeof createElementGenerator<key>>;
+  } & {
+    fragment: () => ElementInstanceGenerator;
   };
 } & (
   Events extends undefined ? {} : {

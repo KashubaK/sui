@@ -10,7 +10,13 @@ const Login: ComponentDefinition<IRouteInput, { count: number }> = ({ state, $ }
     }
   })
 
-  return container(heading('Login'), button(`count ${state.count}`));
+  const fragment = $.fragment();
+
+  console.log({ fragment })
+
+  return container(
+    fragment(heading('Login'), button(`count ${state.count}`))
+  );
 }
 
 export default component(Login, { count: 0 })

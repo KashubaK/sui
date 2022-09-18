@@ -33,7 +33,7 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
 export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = {
   type: 'component' | 'element' | 'text' | 'fragment';
   name: string;
-  tagName: TagName;
+  tagName?: TagName;
   description: ElementDescription<TagName>;
   textContent?: string;
   children: (ElementRenderer | ComponentRecordGenerator)[];
@@ -58,7 +58,7 @@ export type ElementInstanceGenerator = (...children: Child[]) => ElementRenderer
 export type ElementRenderer<TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = (() => ElementRecord<any, any, TagName>) & {
   parent?: ElementRecord;
   componentName: string;
-  type: 'element' | 'component' | 'text';
+  type: 'element' | 'component' | 'text' | 'fragment';
 };
 
 export function createElementGenerator<TagName extends keyof HTMLElementTagNameMap>(tagName: TagName) {
@@ -74,20 +74,7 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
           // ugh. TS doesn't like how I'm using generics to map element tag names
           description: description as any,
           childRecords: [],
-          children: children.map(child => {
-            if (!child) return;
-
-            if (typeof child === 'string') {
-              return createTextRenderer(child);
-            }
-
-            // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
-            if ('type' in child) {
-              return child;
-            }
-
-            return child();
-          }).filter(Boolean) as ElementRecord['children'],
+          children: normalizeChildren(children),
           mounted: false,
           type: 'element',
         };
@@ -103,6 +90,32 @@ export function createElementGenerator<TagName extends keyof HTMLElementTagNameM
 
     return instanceGenerator as ElementInstanceGenerator;
   }
+}
+
+export function createFragmentRenderer() {
+  const instanceGenerator = (...children: Child[]) => {
+    const generateElementRecord = () => {
+      const record: ElementRecord<undefined, undefined, 'span'> = {
+        name: 'fragment',
+        description: {},
+        childRecords: [],
+        children: normalizeChildren(children),
+        mounted: false,
+        type: 'fragment',
+      }
+
+      return record;
+    }
+
+    generateElementRecord.type = 'fragment' as const;
+    generateElementRecord.componentName = 'fragment';
+
+    return generateElementRecord;
+  }
+
+  // Seems unnecessary, but to remain consistent with the idea of "scaffolding" element generators
+  // let's do this for now
+  return () => instanceGenerator;
 }
 
 function createTextRenderer(text: string): ElementRenderer<'span'> {
@@ -125,4 +138,21 @@ function createTextRenderer(text: string): ElementRenderer<'span'> {
   generateElementRecord.componentName = 'text';
 
   return generateElementRecord;
+}
+
+function normalizeChildren(children: Child[]) {
+  return children.map(child => {
+    if (!child) return;
+
+    if (typeof child === 'string') {
+      return createTextRenderer(child);
+    }
+
+    // Weird hack. We don't want to call Component/ElementRenderers, but if it's an InstanceGenerator we do
+    if ('type' in child) {
+      return child;
+    }
+
+    return child();
+  }).filter(Boolean) as ElementRecord['children'];
 }

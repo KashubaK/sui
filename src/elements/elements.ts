@@ -1,4 +1,4 @@
-import {createElementGenerator} from "./element";
+import {createElementGenerator, createFragmentRenderer} from "./element";
 
 export const elements = {
   a: createElementGenerator('a'),
@@ -112,4 +112,5 @@ export const elements = {
   var: createElementGenerator('var'),
   video: createElementGenerator('video'),
   wbr: createElementGenerator('wbr'),
+  fragment: createFragmentRenderer(),
 } as const;

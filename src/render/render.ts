@@ -6,7 +6,7 @@ export function reconcileElement(record: ElementRecord): Node {
     document.createTextNode(record.textContent || '') :
     record.type === 'fragment' ?
       new DocumentFragment() :
-      document.createElement(record.tagName);
+      document.createElement(record.tagName || 'div');
 
   applyElementDescription(record);
 
