@@ -32,7 +32,7 @@ export type EmitFn<Events extends ComponentEvents> = (
 
 export type ComponentDefaultState<Input, State> = State | ((input: Input) => State);
 export type ComponentDefinition<Input = undefined, State = undefined, Events extends ComponentEvents | undefined  = undefined> =
-  (utils: ComponentUtils<Input, State, Events>) => ElementRenderer | ElementInstanceGenerator;
+  (utils: ComponentUtils<Input, State, Events>) => ElementRenderer | ElementInstanceGenerator | ComponentRecordGenerator;
 
 export type ComponentInstanceGeneratorArgs<Input, Events extends ComponentEvents | undefined> =
   Input extends undefined
@@ -112,13 +112,28 @@ export function component<
           // That's why we're casting the utils here as `any`, so we don't have to create separate utils for each case.
         } as any)();
 
-        // Components can return an ElementInstanceGenerator
-        if (typeof record === 'function') record = record();
+        if ('componentName' in record && record.type === 'component') {
+          const fragmentRecord: ElementRecord<Input, State> = {
+            name: componentName,
+            type: 'fragment' as any,
+            tagName: 'fragment' as any, // TODO
+            description: {},
+            children: [record],
+            childRecords: [],
+            mounted: false,
+            state,
+            input: input as any // TODO
+          };
+
+          record = fragmentRecord;
+        } else if (typeof record === 'function') {
+          record = record();
+          record.type = 'component';
+        }
 
         record.name = componentName;
         record.state = state;
         record.input = input;
-        record.type = 'component';
 
         return record;
       }

@@ -11,7 +11,7 @@ function isComponentRenderer(render: ComponentRecordGenerator | ElementRenderer)
   return render.type === 'component';
 }
 
-export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HTMLElement, childIndex = 0) {
+export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HTMLElement | DocumentFragment, childIndex = 0) {
   // ComponentRenderer does not contain any properties
   let render: ComponentRecordGenerator | ElementRenderer;
 
@@ -59,19 +59,23 @@ export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HT
     currentRecord.lastState = deepRemoveObservables({ ...currentRecord.state });
     currentRecord.lastInput = 'input' in render ? deepRemoveObservables({ ...(render.input || {}) }) : {};
 
-    const element = reconcileElement(currentRecord);
+    reconcileElement(currentRecord);
 
-    if (!currentRecord.mounted) {
-      mountElement(currentRecord, parentElement, childIndex);
-    }
+    const parentForChildren = currentRecord.element;
 
-    if (element instanceof HTMLElement) {
+    if (parentForChildren instanceof HTMLElement || parentForChildren instanceof DocumentFragment) {
       currentRecord.children = record.children;
-      currentRecord.children.forEach((child, index) => {
+
+      for (let i = 0; i < currentRecord.children.length; i++) {
+        const child = currentRecord.children[i];
         child.parent = currentRecord!;
 
-        mount(child, element, index)
-      });
+        mount(child, parentForChildren, i);
+      };
+    }
+
+    if (!currentRecord.mounted || currentRecord.type === 'fragment') {
+      mountElement(currentRecord, parentElement, childIndex);
     }
 
     if (currentRecord.childRecords.length !== currentRecord.children.length) {
@@ -100,9 +104,11 @@ export function mount(fn: ComponentRenderer | ElementRenderer, parentElement: HT
     if (isComponentRenderer(render)) {
       render.__lastRenderTime = end - start;
     }
+
+    return currentRecord;
   };
 
-  perform();
+  return perform();
 }
 
 function updateRecord(record: ElementRecord, newRecord: ElementRecord) {
@@ -125,7 +131,7 @@ function cleanChildren(record: ElementRecord) {
   });
 }
 
-function mountElement(record: ElementRecord, parentElement: HTMLElement, index: number) {
+function mountElement(record: ElementRecord, parentElement: HTMLElement | DocumentFragment, index: number) {
   if (!parentElement) {
     console.error(record);
     throw new Error('Cannot mount element without a parent element');
@@ -144,7 +150,7 @@ function mountElement(record: ElementRecord, parentElement: HTMLElement, index: 
   }
 
   if (record.description.mount && element instanceof HTMLElement) {
-    // TODO: State updates inside description mount function do not cause reactivity
+    // TODO: State updates inside description.mount function do not cause reactivity
     // unless called within a setTimeout. WARN DEVELOPERS: Too many mount hooks can cause performance issues.
     setTimeout(() => record.description.mount?.(element));
   }

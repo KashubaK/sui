@@ -2,10 +2,12 @@ import {ElementRecord} from "../elements/element";
 import {action} from "mobx";
 
 export function reconcileElement(record: ElementRecord): Node {
-  if (!record.element) {
+  if (record.type === 'fragment') {
+    record.element = new DocumentFragment();
+  } else if (!record.element) {
     record.element = record.type === 'text' ?
       document.createTextNode(record.textContent || '') :
-      document.createElement(record.tagName);
+        document.createElement(record.tagName);
   }
 
   applyElementDescription(record);

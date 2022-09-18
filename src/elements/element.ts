@@ -31,7 +31,7 @@ export type ElementDescription<TagName extends keyof HTMLElementTagNameMap> = {
 };
 
 export type ElementRecord<Input = {}, State = {}, TagName extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = {
-  type: 'component' | 'element' | 'text';
+  type: 'component' | 'element' | 'text' | 'fragment';
   name: string;
   tagName: TagName;
   description: ElementDescription<TagName>;

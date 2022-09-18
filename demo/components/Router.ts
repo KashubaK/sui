@@ -20,7 +20,7 @@ type State = {
 
 const defaultState = { currentRoute: location.pathname, removeNavigateListener: null };
 
-export default component<Input, State>(function Router({ state, input, $ }) {
+export default component<Input, State>(function Router({ state, input }) {
   const locationPathSegments = state.currentRoute.split('/');
   locationPathSegments.shift();
 
@@ -29,11 +29,7 @@ export default component<Input, State>(function Router({ state, input, $ }) {
     state.currentRoute = url;
   });
 
-  const container = $.div({ class: 'Router' });
-
-  return container(
-    getMatchedRoute(),
-  );
+  return getMatchedRoute();
 
   function getMatchedRoute() {
     let matchedRoute: ComponentRenderer<IRouteInput> | null = null;

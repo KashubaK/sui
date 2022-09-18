@@ -9,7 +9,7 @@ import Children from "./routes/Children";
 import Conditional from "./routes/Conditional";
 
 const Fallback = component(function Fallback({ $ }) {
-  return $.h1({ text: 'No route matched.' });
+  return $.h1({})('No route matched.');
 })
 
 export default component(function App({ $ }) {
@@ -29,6 +29,7 @@ export default component(function App({ $ }) {
   })
 
   const container = $.div({ class: 'App' });
+  const text = $.span()
 
-  return container(router);
+  return container(text('hmm'), router, text('uhhh'));
 });
