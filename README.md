@@ -1,3 +1,7 @@
+# Abandoned!
+
+This project will not be worked on for the foreseeable future.
+
 # SUI
 
 Simple client-side UI framework for JavaScript.
